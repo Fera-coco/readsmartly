@@ -1,0 +1,20 @@
+# Firebase config (contains API keys — never commit this)
+firebase-config.js
+
+# Dependencies
+node_modules/
+
+# Environment
+.env
+*.env
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/

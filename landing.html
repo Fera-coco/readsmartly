@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en" data-landing-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadSmartly: Your AI Study Companion</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── DESIGN TOKENS ─────────────────────────────────────────── */
+    :root {
+      --navy:    #0F172A;
+      --navy-2:  #1E293B;
+      --navy-3:  #334155;
+      --blue:    #2563EB;
+      --blue-2:  #1D4ED8;
+      --blue-lt: #EFF6FF;
+      --slate:   #64748B;
+      --border:  #E2E8F0;
+      --bg:      #F8FAFC;
+      --white:   #FFFFFF;
+      --amber:   #F59E0B;
+      --amber-lt:#FFFBEB;
+      --green:   #10B981;
+      --red:     #EF4444;
+
+      --font-head: 'Bricolage Grotesque', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+
+      /* Page theming vars (light default) */
+      --page-bg:     #F8FAFC;
+      --page-text:   #0F172A;
+      --card-bg:     #FFFFFF;
+      --card-border: #E2E8F0;
+      --section-alt: #F1F5F9;
+    }
+
+    [data-landing-theme="dark"] {
+      --page-bg:     #0B1120;
+      --page-text:   #E2E8F0;
+      --card-bg:     #111827;
+      --card-border: rgba(255,255,255,0.08);
+      --section-alt: #0F172A;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--page-bg);
+      color: var(--page-text);
+      overflow-x: hidden;
+      transition: background 0.35s, color 0.35s;
+    }
+
+    /* ── NAV ───────────────────────────────────────────────────── */
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: 64px;
+      background: rgba(15,23,42,0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; align-items: center;
+    }
+    .nav-inner {
+      width: 100%; max-width: 1200px; margin: 0 auto;
+      padding: 0 2rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .nav-logo {
+      font-family: var(--font-head);
+      font-weight: 800; font-size: 1.2rem; color: #fff;
+      text-decoration: none; display: flex; align-items: center; gap: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .nav-logo .flame { font-size: 1.1rem; }
+    .nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .nav-link-item {
+      color: rgba(255,255,255,0.55); text-decoration: none;
+      font-size: 0.875rem; font-weight: 500;
+      padding: 0.4rem 0.85rem; border-radius: 8px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .nav-link-item:hover { color: #fff; background: rgba(255,255,255,0.07); }
+    .nav-cta {
+      background: var(--blue); color: #fff !important;
+      border-radius: 8px; padding: 0.45rem 1.1rem !important;
+      font-weight: 600 !important; font-size: 0.875rem !important;
+      transition: background 0.2s, transform 0.15s !important;
+    }
+    .nav-cta:hover { background: var(--blue-2) !important; transform: translateY(-1px); }
+
+    /* ── HERO ──────────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding-top: 64px;
+    }
+
+    /* Left dark panel */
+    .hero-left {
+      background: var(--navy);
+      display: flex; flex-direction: column;
+      justify-content: center;
+      padding: 5rem 4rem 5rem 6rem;
+      position: relative; overflow: hidden;
+    }
+    .hero-left::after {
+      content: '';
+      position: absolute; bottom: -120px; right: -120px;
+      width: 400px; height: 400px; border-radius: 50%;
+      background: radial-gradient(circle, rgba(37,99,235,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-kicker {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(37,99,235,0.15);
+      border: 1px solid rgba(37,99,235,0.3);
+      color: #93C5FD;
+      padding: 0.3rem 0.85rem; border-radius: 6px;
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.07em; text-transform: uppercase;
+      margin-bottom: 1.75rem;
+      width: fit-content;
+      animation: fadeUp 0.5s ease both;
+    }
+
+    .hero-h1 {
+      font-family: var(--font-head);
+      font-size: clamp(2.8rem, 4.5vw, 4.2rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      color: #fff;
+      margin-bottom: 1.25rem;
+      animation: fadeUp 0.5s 0.08s ease both;
+    }
+    .hero-h1 em {
+      font-style: normal;
+      color: var(--amber);
+    }
+
+    .hero-sub {
+      font-size: 1.05rem; font-weight: 400;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.7; max-width: 420px;
+      margin-bottom: 2.5rem;
+      animation: fadeUp 0.5s 0.16s ease both;
+    }
+
+    .hero-actions {
+      display: flex; gap: 0.875rem; flex-wrap: wrap;
+      animation: fadeUp 0.5s 0.24s ease both;
+    }
+    .btn-primary-lg {
+      background: var(--blue); color: #fff;
+      border: none; border-radius: 10px;
+      padding: 0.85rem 1.75rem;
+      font-family: var(--font-body); font-size: 0.95rem; font-weight: 600;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+    }
+    .btn-primary-lg:hover { background: var(--blue-2); color: #fff; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(37,99,235,0.4); }
+    .btn-ghost-lg {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 10px; padding: 0.85rem 1.5rem;
+      font-family: var(--font-body); font-size: 0.95rem; font-weight: 500;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;
+      transition: all 0.2s;
+    }
+    .btn-ghost-lg:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    /* Social proof strip */
+    .hero-social-proof {
+      display: flex; align-items: center; gap: 1rem;
+      margin-top: 3rem;
+      animation: fadeUp 0.5s 0.32s ease both;
+    }
+    .proof-avatars { display: flex; }
+    .proof-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--navy-2); border: 2px solid var(--navy);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.7);
+      margin-left: -8px;
+    }
+    .proof-avatar:first-child { margin-left: 0; }
+    .proof-text { font-size: 0.8rem; color: rgba(255,255,255,0.4); line-height: 1.4; }
+    .proof-text strong { color: rgba(255,255,255,0.75); }
+
+    /* Right light panel */
+    .hero-right {
+      background: var(--page-bg);
+      display: flex; align-items: center; justify-content: center;
+      padding: 4rem 4rem 4rem 3rem;
+      position: relative;
+      transition: background 0.35s;
+    }
+
+    /* ── APP MOCKUP ────────────────────────────────────────────── */
+    .app-mockup {
+      width: 100%; max-width: 420px;
+      background: #fff;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 60px rgba(15,23,42,0.12), 0 4px 16px rgba(15,23,42,0.06);
+      overflow: hidden;
+    }
+    .mockup-topbar {
+      background: var(--navy);
+      padding: 0.75rem 1rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .mockup-brand { font-family: var(--font-head); font-size: 0.85rem; font-weight: 700; color: #fff; }
+    .mockup-dot-row { display: flex; gap: 5px; }
+    .mockup-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .mockup-body { padding: 1rem; }
+
+    /* Streak pill */
+    .mockup-streak {
+      background: var(--navy);
+      border-radius: 14px; padding: 1rem 1.25rem;
+      margin-bottom: 0.875rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .mockup-streak-label { font-size: 0.62rem; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.2rem; }
+    .mockup-streak-num { font-family: var(--font-head); font-size: 2.2rem; font-weight: 800; color: var(--amber); line-height: 1; }
+    .mockup-streak-sub { font-size: 0.7rem; color: rgba(255,255,255,0.4); margin-top: 0.2rem; }
+    .mockup-streak-badge {
+      background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3);
+      color: var(--amber); border-radius: 6px;
+      padding: 0.25rem 0.6rem; font-size: 0.7rem; font-weight: 600;
+    }
+
+    /* Stat row */
+    .mockup-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-bottom: 0.875rem; }
+    .mockup-stat { background: var(--bg); border-radius: 10px; padding: 0.6rem 0.75rem; }
+    .mockup-stat-val { font-family: var(--font-head); font-size: 1.2rem; font-weight: 800; color: var(--navy); }
+    .mockup-stat-lbl { font-size: 0.58rem; color: var(--slate); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* AI insight */
+    .mockup-ai {
+      background: var(--blue-lt);
+      border: 1px solid #BFDBFE;
+      border-radius: 10px; padding: 0.75rem 0.875rem; margin-bottom: 0.875rem;
+    }
+    .mockup-ai-tag { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--blue); margin-bottom: 0.3rem; }
+    .mockup-ai-text { font-size: 0.75rem; color: var(--navy-2); line-height: 1.5; }
+
+    /* Task progress */
+    .mockup-task { border: 1px solid var(--border); border-radius: 10px; padding: 0.75rem 0.875rem; }
+    .mockup-task-title { font-family: var(--font-head); font-size: 0.8rem; font-weight: 700; color: var(--navy); margin-bottom: 0.2rem; }
+    .mockup-task-sub { font-size: 0.67rem; color: var(--slate); margin-bottom: 0.5rem; }
+    .mockup-prog-track { height: 5px; background: var(--border); border-radius: 100px; overflow: hidden; }
+    .mockup-prog-fill { height: 100%; border-radius: 100px; background: var(--blue); width: 68%; }
+
+    /* ── STATS BAND ────────────────────────────────────────────── */
+    .stats-band {
+      background: var(--navy);
+      padding: 3rem 0;
+    }
+    .stats-band-inner {
+      max-width: 1200px; margin: 0 auto; padding: 0 2rem;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 2rem; text-align: center;
+    }
+    .band-num {
+      font-family: var(--font-head);
+      font-size: 2.4rem; font-weight: 800; color: var(--amber);
+      line-height: 1; display: block;
+    }
+    .band-lbl {
+      font-size: 0.78rem; color: rgba(255,255,255,0.38);
+      text-transform: uppercase; letter-spacing: 0.08em;
+      margin-top: 0.4rem; display: block;
+    }
+
+    /* ── SHARED SECTION STYLES ─────────────────────────────────── */
+    .section-wrap { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+    .section-kicker {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.1em; color: var(--blue); margin-bottom: 0.6rem;
+    }
+    .section-h2 {
+      font-family: var(--font-head);
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      font-weight: 800; letter-spacing: -0.025em; line-height: 1.15;
+      color: var(--navy); margin-bottom: 0.75rem;
+    }
+    .section-sub {
+      font-size: 1rem; color: var(--slate); line-height: 1.7;
+      max-width: 500px; font-weight: 400;
+    }
+
+    /* ── FEATURES ──────────────────────────────────────────────── */
+    .features-section { padding: 6rem 0; background: var(--bg); }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: var(--border);
+      border: 1px solid var(--border); border-radius: 16px; overflow: hidden;
+      margin-top: 3.5rem;
+    }
+    .feat-cell {
+      background: var(--white); padding: 2rem;
+      transition: background 0.2s;
+      position: relative;
+    }
+    .feat-cell:hover { background: var(--bg); }
+    .feat-cell.span-2 { grid-column: span 2; }
+    .feat-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: var(--blue-lt); border: 1px solid #BFDBFE;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; margin-bottom: 1.1rem;
+    }
+    .feat-cell h3 {
+      font-family: var(--font-head); font-weight: 700; font-size: 1rem;
+      color: var(--navy); margin-bottom: 0.4rem;
+    }
+    .feat-cell p { font-size: 0.875rem; color: var(--slate); line-height: 1.65; margin: 0; }
+    .feat-badge {
+      position: absolute; top: 1.25rem; right: 1.25rem;
+      background: var(--amber-lt); border: 1px solid #FDE68A;
+      color: #92400E; border-radius: 5px;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.06em;
+      padding: 0.18rem 0.5rem; text-transform: uppercase;
+    }
+
+    /* ── AI SECTION ────────────────────────────────────────────── */
+    .ai-section { padding: 6rem 0; background: var(--navy); }
+    .ai-section .section-h2 { color: #fff; }
+    .ai-section .section-sub { color: rgba(255,255,255,0.42); }
+    .ai-section .section-kicker { color: #93C5FD; }
+
+    .ai-features-list { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .ai-feat-row {
+      display: flex; align-items: flex-start; gap: 1rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 12px; padding: 1.1rem 1.25rem;
+      transition: all 0.2s;
+    }
+    .ai-feat-row:hover { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.25); transform: translateX(4px); }
+    .ai-feat-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .ai-feat-title { font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; color: #fff; margin-bottom: 0.2rem; }
+    .ai-feat-desc { font-size: 0.8rem; color: rgba(255,255,255,0.38); margin: 0; }
+
+    /* Dark mockup */
+    .dark-mockup {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px; padding: 1.5rem;
+    }
+    .dm-block {
+      border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem;
+    }
+    .dm-block.blue  { background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.2); }
+    .dm-block.amber { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); }
+    .dm-tag { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.4rem; }
+    .dm-tag.blue  { color: #93C5FD; }
+    .dm-tag.amber { color: var(--amber); }
+    .dm-text { font-size: 0.82rem; color: rgba(255,255,255,0.7); line-height: 1.55; margin: 0; }
+    .dm-prog-row { margin-bottom: 0.6rem; }
+    .dm-prog-label { display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 0.3rem; }
+    .dm-prog-label span:first-child { color: rgba(255,255,255,0.42); }
+    .dm-prog-label span:last-child  { color: var(--amber); font-weight: 600; }
+    .dm-prog-track { height: 4px; background: rgba(255,255,255,0.07); border-radius: 100px; overflow: hidden; }
+    .dm-prog-fill  { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--blue), var(--amber)); }
+
+    /* ── HOW IT WORKS ──────────────────────────────────────────── */
+    .how-section { padding: 6rem 0; background: var(--white); }
+    .how-steps { margin-top: 3.5rem; display: flex; flex-direction: column; gap: 0; }
+    .how-step {
+      display: grid; grid-template-columns: 64px 1fr;
+      gap: 1.75rem; padding: 1.75rem 0;
+      border-bottom: 1px solid var(--border);
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .how-step:last-child { border-bottom: none; }
+    .how-step.visible { opacity: 1; transform: translateY(0); }
+    .step-n {
+      width: 52px; height: 52px; border-radius: 12px;
+      background: var(--navy); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head); font-size: 1.1rem; font-weight: 800;
+      flex-shrink: 0;
+    }
+    .step-title { font-family: var(--font-head); font-weight: 700; font-size: 1.05rem; color: var(--navy); margin-bottom: 0.3rem; }
+    .step-desc  { font-size: 0.9rem; color: var(--slate); line-height: 1.65; margin: 0; }
+
+    /* ── TESTIMONIALS ──────────────────────────────────────────── */
+    .testi-section { padding: 6rem 0; background: var(--bg); }
+    .testi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; margin-top: 3.5rem; }
+    .testi-card {
+      background: var(--white); border-radius: 14px; padding: 1.75rem;
+      border: 1px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .testi-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(15,23,42,0.08); }
+    .testi-stars { color: var(--amber); font-size: 0.8rem; margin-bottom: 0.875rem; letter-spacing: 0.05em; }
+    .testi-quote { font-size: 0.9rem; color: var(--navy-2); line-height: 1.7; font-style: italic; margin-bottom: 1.25rem; }
+    .testi-av {
+      width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+      background: var(--navy); color: rgba(255,255,255,0.8);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-head); font-size: 0.78rem; font-weight: 700;
+    }
+    .testi-name { font-weight: 600; font-size: 0.85rem; color: var(--navy); }
+    .testi-role { font-size: 0.775rem; color: var(--slate); }
+
+    /* ── CTA SECTION ───────────────────────────────────────────── */
+    .cta-section {
+      padding: 6rem 0; background: var(--blue);
+      text-align: center; position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 100%, rgba(15,23,42,0.3) 0%, transparent 60%);
+    }
+    .cta-h2 {
+      font-family: var(--font-head); font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 800; color: #fff; letter-spacing: -0.02em;
+      margin-bottom: 0.875rem; position: relative; z-index: 1;
+    }
+    .cta-sub {
+      font-size: 1.05rem; color: rgba(255,255,255,0.7); max-width: 440px;
+      margin: 0 auto 2.5rem; line-height: 1.65; font-weight: 400;
+      position: relative; z-index: 1;
+    }
+    .btn-cta {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: #fff; color: var(--blue);
+      border-radius: 10px; padding: 1rem 2.25rem;
+      font-family: var(--font-body); font-size: 1rem; font-weight: 700;
+      text-decoration: none; transition: all 0.2s;
+      box-shadow: 0 4px 20px rgba(15,23,42,0.2);
+      position: relative; z-index: 1;
+    }
+    .btn-cta:hover { color: var(--blue-2); transform: translateY(-2px); box-shadow: 0 10px 36px rgba(15,23,42,0.3); }
+
+    /* ── FOOTER ────────────────────────────────────────────────── */
+    footer {
+      background: var(--navy); padding: 1.5rem 0;
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto; padding: 0 2rem;
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-brand { font-family: var(--font-head); font-weight: 800; font-size: 0.95rem; color: #fff; }
+    .footer-copy  { font-size: 0.78rem; color: rgba(255,255,255,0.28); }
+    .footer-links { display: flex; gap: 1.5rem; }
+    .footer-links a { color: rgba(255,255,255,0.35); text-decoration: none; font-size: 0.8rem; transition: color 0.2s; }
+    .footer-links a:hover { color: rgba(255,255,255,0.7); }
+
+    /* ── ANIMATIONS ────────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ────────────────────────────────────────────── */
+    @media (max-width: 992px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-left { padding: 4rem 2rem 3rem; }
+      .hero-right { padding: 2rem; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .feat-cell.span-2 { grid-column: span 1; }
+      .stats-band-inner { grid-template-columns: repeat(2,1fr); }
+      .testi-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 576px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .nav-links .nav-link-item:not(.nav-cta) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="site-nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo"><span class="flame">🔥</span> ReadSmartly</a>
+      <div class="nav-links">
+        <a href="#features" class="nav-link-item">Features</a>
+        <a href="#ai" class="nav-link-item">AI</a>
+        <a href="#how" class="nav-link-item">How it works</a>
+        <button class="nav-link-item" onclick="toggleTheme()" id="themeToggleBtn" title="Toggle dark/light mode" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.7);border-radius:8px;padding:0.4rem 0.7rem;cursor:pointer;font-size:0.85rem;transition:all 0.2s;">🌙</button>
+        <a href="index.html" class="nav-link-item" style="color:rgba(255,255,255,0.55)">Log in</a>
+        <a href="index.html?tab=signup" class="nav-link-item nav-cta">Get started →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <!-- LEFT -->
+    <div class="hero-left">
+      <div class="hero-kicker">🎓 Built for university students</div>
+      <h1 class="hero-h1">
+        Study smarter.<br>
+        <em>Miss nothing.</em>
+      </h1>
+      <p class="hero-sub">
+        ReadSmartly tracks your reading, learns your habits, and uses AI to keep you on track, even before you realise you're slipping.
+      </p>
+      <div class="hero-actions">
+        <a href="index.html?tab=signup" class="btn-primary-lg">
+          Start free <i class="bi bi-arrow-right"></i>
+        </a>
+        <a href="#how" class="btn-ghost-lg">
+          <i class="bi bi-play-circle"></i> See how it works
+        </a>
+      </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="hero-right">
+      <!-- DEVICE SCENE: desktop + mobile side by side -->
+      <div style="position:relative;width:100%;max-width:440px;">
+
+        <!-- Desktop mockup -->
+        <div style="background:var(--card-bg);border-radius:16px;border:1px solid var(--card-border);box-shadow:0 24px 60px rgba(15,23,42,0.14);overflow:hidden;transition:background 0.35s,border-color 0.35s;">
+          <div style="background:var(--navy);padding:0.6rem 1rem;display:flex;align-items:center;gap:0.4rem;">
+            <div style="width:8px;height:8px;border-radius:50%;background:#EF4444;"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:#F59E0B;margin-left:4px;"></div>
+            <div style="width:8px;height:8px;border-radius:50%;background:#10B981;margin-left:4px;"></div>
+            <div style="font-family:var(--font-head);font-size:0.72rem;font-weight:700;color:rgba(255,255,255,0.65);margin:0 auto;">🔥 ReadSmartly</div>
+          </div>
+          <div style="display:grid;grid-template-columns:160px 1fr;height:240px;">
+            <div style="background:var(--navy-2);padding:0.75rem 0.65rem;display:flex;flex-direction:column;gap:0.3rem;border-right:1px solid rgba(255,255,255,0.05);">
+              <div style="font-size:0.55rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.25rem;padding:0 0.25rem;">Menu</div>
+              <div style="display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.5rem;border-radius:6px;background:rgba(37,99,235,0.2);font-size:0.63rem;color:#93C5FD;">📊 Dashboard</div>
+              <div style="display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.5rem;border-radius:6px;font-size:0.63rem;color:rgba(255,255,255,0.35);">📚 Tasks</div>
+              <div style="display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.5rem;border-radius:6px;font-size:0.63rem;color:rgba(255,255,255,0.35);">⏱️ Timer</div>
+              <div style="display:flex;align-items:center;gap:0.4rem;padding:0.4rem 0.5rem;border-radius:6px;font-size:0.63rem;color:rgba(255,255,255,0.35);">🧠 AI Insights</div>
+            </div>
+            <div style="padding:0.75rem;overflow:hidden;">
+              <div style="background:var(--navy);border-radius:10px;padding:0.65rem 0.875rem;display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                <div>
+                  <div style="font-size:0.55rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.07em;">Streak</div>
+                  <div style="font-family:var(--font-head);font-size:1.5rem;font-weight:800;color:var(--amber);line-height:1;">7</div>
+                </div>
+                <div style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:var(--amber);border-radius:5px;padding:0.15rem 0.45rem;font-size:0.58rem;font-weight:600;">⚡ On fire</div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.35rem;margin-bottom:0.5rem;">
+                <div style="background:var(--bg);border-radius:8px;padding:0.45rem 0.5rem;">
+                  <div style="font-family:var(--font-head);font-size:1rem;font-weight:800;">312</div>
+                  <div style="font-size:0.5rem;color:var(--slate);text-transform:uppercase;letter-spacing:0.06em;">Pages</div>
+                </div>
+                <div style="background:var(--bg);border-radius:8px;padding:0.45rem 0.5rem;">
+                  <div style="font-family:var(--font-head);font-size:1rem;font-weight:800;">24</div>
+                  <div style="font-size:0.5rem;color:var(--slate);text-transform:uppercase;letter-spacing:0.06em;">Sessions</div>
+                </div>
+                <div style="background:var(--bg);border-radius:8px;padding:0.45rem 0.5rem;">
+                  <div style="font-family:var(--font-head);font-size:1rem;font-weight:800;">38</div>
+                  <div style="font-size:0.5rem;color:var(--slate);text-transform:uppercase;letter-spacing:0.06em;">Pg/hr</div>
+                </div>
+              </div>
+              <div style="background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:8px;padding:0.5rem 0.65rem;">
+                <div style="font-size:0.52rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--blue);margin-bottom:0.2rem;">🧠 AI Insight</div>
+                <div style="font-size:0.65rem;color:var(--navy-2);line-height:1.5;">You study best at <strong>9 PM</strong>. Exam in <strong>6 days</strong>. Read 40 pages today.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile mockup (overlapping bottom-right) -->
+        <div style="position:absolute;right:-32px;bottom:-28px;width:148px;background:var(--card-bg);border-radius:20px;border:1px solid var(--card-border);box-shadow:0 16px 48px rgba(15,23,42,0.22);overflow:hidden;transition:background 0.35s,border-color 0.35s;">
+          <div style="background:var(--navy);height:26px;display:flex;align-items:center;justify-content:center;">
+            <div style="width:45px;height:5px;background:rgba(0,0,0,0.5);border-radius:100px;"></div>
+          </div>
+          <div style="padding:0.7rem 0.65rem;">
+            <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#EF4444;border-radius:5px;padding:0.22rem 0.45rem;font-size:0.56rem;font-weight:600;display:flex;align-items:center;gap:0.3rem;margin-bottom:0.5rem;">🔔 Exam in 6 days</div>
+            <div style="display:flex;align-items:center;gap:0.45rem;margin-bottom:0.55rem;">
+              <span style="font-size:1.25rem;">🔥</span>
+              <div>
+                <div style="font-family:var(--font-head);font-size:1.4rem;font-weight:800;color:var(--amber);line-height:1;">7</div>
+                <div style="font-size:0.52rem;color:var(--slate);">day streak</div>
+              </div>
+            </div>
+            <div style="background:var(--section-alt);border-radius:7px;padding:0.5rem 0.6rem;margin-bottom:0.45rem;transition:background 0.35s;">
+              <div style="font-size:0.6rem;font-weight:700;margin-bottom:0.2rem;">Research Methods Ch.3</div>
+              <div style="font-size:0.52rem;color:var(--slate);margin-bottom:0.25rem;">32 / 45 pages</div>
+              <div style="height:3px;background:var(--card-border);border-radius:100px;overflow:hidden;"><div style="height:100%;width:71%;background:var(--blue);border-radius:100px;"></div></div>
+            </div>
+            <button style="display:block;width:100%;background:var(--blue);color:#fff;border:none;border-radius:6px;padding:0.38rem 0.5rem;font-size:0.58rem;font-weight:600;font-family:var(--font-body);">▶ Log Session</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- FEATURES -->
+  <section class="features-section" id="features">
+    <div class="section-wrap">
+      <div class="section-kicker">Features</div>
+      <h2 class="section-h2">Everything a student actually needs</h2>
+      <p class="section-sub">No fluff. Just the tools that move the needle on your reading habits.</p>
+
+      <div class="features-grid">
+        <div class="feat-cell">
+          <div class="feat-icon">🔥</div>
+          <h3>Streak Tracking</h3>
+          <p>Daily streaks with smart badges. Miss a day and the AI nudges you back before momentum is lost.</p>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-icon">📊</div>
+          <h3>14-Day Progress Chart</h3>
+          <p>A clean line chart of pages read per day. Spot your patterns and adjust your schedule before it is too late.</p>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-icon">📅</div>
+          <h3>Exam & Deadline Tracking</h3>
+          <p>Add tests, exams, and submission dates. The AI factors these in when recommending how much to read today.</p>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-icon">🎙️</div>
+          <h3>Voice Notes</h3>
+          <p>Record what you studied with your microphone. The browser transcribes it instantly. No typing required.</p>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-icon">📝</div>
+          <h3>Smart Study Notes</h3>
+          <p>Write notes after each session. The AI stores them and asks you review questions later to reinforce retention.</p>
+        </div>
+        <div class="feat-cell">
+          <div class="feat-icon">🧠</div>
+          <h3>AI Study Schedule</h3>
+          <p>Enter your courses, page counts, and exam dates. ReadSmartly builds a personalised daily plan and redistributes load automatically as you log sessions.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXAM READINESS -->
+  <section style="padding:6rem 0;background:var(--section-alt);transition:background 0.35s;" id="exam">
+    <div class="section-wrap">
+      <div class="section-kicker">Exam Readiness</div>
+      <h2 class="section-h2">Know exactly how prepared you are</h2>
+      <p class="section-sub">ReadSmartly calculates a live exam readiness score based on your progress, reading speed, and time left before each deadline.</p>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:1.25rem;margin-top:2.5rem;">
+        <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:1.75rem;transition:all 0.25s;">
+          <div style="font-size:1.75rem;margin-bottom:0.875rem;">📈</div>
+          <h3 style="font-family:var(--font-head);font-weight:700;font-size:1rem;color:var(--page-text);margin-bottom:0.4rem;transition:color 0.35s;">Real-Time Readiness Score</h3>
+          <p style="font-size:0.875rem;color:var(--slate);line-height:1.65;margin:0;">Your score updates every time you log a session. It combines pages completed, reading pace, and days remaining into a single percentage indicator.</p>
+        </div>
+        <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:1.75rem;transition:all 0.25s;">
+          <div style="font-size:1.75rem;margin-bottom:0.875rem;">⚠️</div>
+          <h3 style="font-family:var(--font-head);font-weight:700;font-size:1rem;color:var(--page-text);margin-bottom:0.4rem;transition:color 0.35s;">Early Warning Alerts</h3>
+          <p style="font-size:0.875rem;color:var(--slate);line-height:1.65;margin:0;">If your score drops below 60% with less than a week to go, the AI triggers an alert and suggests a catch-up plan before it is too late.</p>
+        </div>
+        <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:1.75rem;transition:all 0.25s;">
+          <div style="font-size:1.75rem;margin-bottom:0.875rem;">🗓️</div>
+          <h3 style="font-family:var(--font-head);font-weight:700;font-size:1rem;color:var(--page-text);margin-bottom:0.4rem;transition:color 0.35s;">Deadline-Driven Targets</h3>
+          <p style="font-size:0.875rem;color:var(--slate);line-height:1.65;margin:0;">Each course gets daily page targets derived from your exam date. Miss a day and targets redistribute automatically to keep you on track.</p>
+        </div>
+        <div style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;padding:1.75rem;transition:all 0.25s;">
+          <div style="font-size:1.75rem;margin-bottom:0.875rem;">🔁</div>
+          <h3 style="font-family:var(--font-head);font-weight:700;font-size:1rem;color:var(--page-text);margin-bottom:0.4rem;transition:color 0.35s;">Retention Booster</h3>
+          <p style="font-size:0.875rem;color:var(--slate);line-height:1.65;margin:0;">Before starting a new session, the AI surfaces review questions from your previous notes, so you build on what you know rather than re-reading passively.</p>
+        </div>
+      </div>
+      <!-- Score preview -->
+      <div style="background:var(--navy);border-radius:20px;padding:2rem;display:flex;gap:2rem;align-items:center;flex-wrap:wrap;margin-top:2.5rem;">
+        <div style="text-align:center;flex-shrink:0;">
+          <div style="font-family:var(--font-head);font-size:3.5rem;font-weight:800;color:var(--amber);line-height:1;">74<span style="font-size:1.2rem;color:rgba(255,255,255,0.4);">%</span></div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.08em;margin-top:0.25rem;">Exam Readiness</div>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.875rem;">Course breakdown</div>
+          <div style="display:flex;justify-content:space-between;font-size:0.76rem;margin-bottom:0.3rem;"><span style="color:rgba(255,255,255,0.42);">Research Methods</span><span style="color:#93C5FD;font-weight:600;">89%</span></div>
+          <div style="height:4px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;margin-bottom:0.75rem;"><div style="height:100%;width:89%;border-radius:100px;background:linear-gradient(90deg,var(--blue),var(--amber));"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:0.76rem;margin-bottom:0.3rem;"><span style="color:rgba(255,255,255,0.42);">Econometrics</span><span style="color:#93C5FD;font-weight:600;">62%</span></div>
+          <div style="height:4px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;margin-bottom:0.75rem;"><div style="height:100%;width:62%;border-radius:100px;background:linear-gradient(90deg,var(--blue),var(--amber));"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:0.76rem;margin-bottom:0.3rem;"><span style="color:rgba(255,255,255,0.42);">Development Economics</span><span style="color:#93C5FD;font-weight:600;">74%</span></div>
+          <div style="height:4px;background:rgba(255,255,255,0.07);border-radius:100px;overflow:hidden;margin-bottom:0.5rem;"><div style="height:100%;width:74%;border-radius:100px;background:linear-gradient(90deg,var(--blue),var(--amber));"></div></div>
+          <div style="font-size:0.72rem;color:rgba(255,255,255,0.3);">Econometrics exam in 5 days. Read 22 more pages to reach 80%.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AI SECTION -->
+  <section class="ai-section" id="ai">
+    <div class="section-wrap">
+      <div class="row align-items-center g-5">
+        <div class="col-lg-5">
+          <div class="section-kicker">AI Intelligence</div>
+          <h2 class="section-h2">It doesn't just track.<br>It thinks ahead.</h2>
+          <p class="section-sub">Three AI systems work in the background to understand how you study and intervene before things go wrong.</p>
+          <div class="ai-features-list">
+            <div class="ai-feat-row">
+              <div class="ai-feat-icon">⏰</div>
+              <div>
+                <div class="ai-feat-title">Pattern Recognition</div>
+                <p class="ai-feat-desc">Detects your peak reading hours from session history</p>
+              </div>
+            </div>
+            <div class="ai-feat-row">
+              <div class="ai-feat-icon">📉</div>
+              <div>
+                <div class="ai-feat-title">Disengagement Prediction</div>
+                <p class="ai-feat-desc">Flags a −40% activity drop before you even feel it</p>
+              </div>
+            </div>
+            <div class="ai-feat-row">
+              <div class="ai-feat-icon">🗓️</div>
+              <div>
+                <div class="ai-feat-title">Smart Study Planner</div>
+                <p class="ai-feat-desc">Generates a day-by-day plan from your courses and exam dates</p>
+              </div>
+            </div>
+            <div class="ai-feat-row">
+              <div class="ai-feat-icon">🔁</div>
+              <div>
+                <div class="ai-feat-title">Memory Review Questions</div>
+                <p class="ai-feat-desc">Quizzes you on your own notes to improve long-term retention</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6 offset-lg-1">
+          <div class="dark-mockup">
+            <div class="mockup-dot-row mb-3">
+              <div class="mockup-dot bg-danger"></div>
+              <div class="mockup-dot bg-warning"></div>
+              <div class="mockup-dot bg-success"></div>
+            </div>
+            <div class="dm-block blue">
+              <div class="dm-tag blue">⏰ Pattern Recognition</div>
+              <p class="dm-text">You study most at <strong style="color:#93C5FD">9 PM</strong> and <strong style="color:#93C5FD">2 PM</strong>. Scheduling your hardest course at these times could improve retention by up to 23%.</p>
+            </div>
+            <div class="dm-block amber">
+              <div class="dm-tag amber">📉 Disengagement Alert</div>
+              <p class="dm-text">Activity is down <strong style="color:var(--amber)">−38%</strong> vs last week. Your Econometrics exam is in 5 days. Try two 15-minute sessions today instead of one long one.</p>
+            </div>
+            <div class="dm-prog-row">
+              <div class="dm-prog-label"><span>Reading speed (profiled)</span><span>42 pg/hr</span></div>
+              <div class="dm-prog-track"><div class="dm-prog-fill" style="width:70%"></div></div>
+            </div>
+            <div class="dm-prog-row">
+              <div class="dm-prog-label"><span>Exam readiness score</span><span>74%</span></div>
+              <div class="dm-prog-track"><div class="dm-prog-fill" style="width:74%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section" id="how">
+    <div class="section-wrap">
+      <div class="text-center mb-2">
+        <div class="section-kicker">How it works</div>
+        <h2 class="section-h2">Up and running in under 2 minutes</h2>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-lg-7">
+          <div class="how-steps">
+            <div class="how-step">
+              <div class="step-n">01</div>
+              <div>
+                <div class="step-title">Create your account</div>
+                <p class="step-desc">Sign up with any email address. Name your AI assistant and it will use your name and tone preferences throughout.</p>
+              </div>
+            </div>
+            <div class="how-step">
+              <div class="step-n">02</div>
+              <div>
+                <div class="step-title">Tell us about your studies</div>
+                <p class="step-desc">Choose your study type: undergraduate, postgraduate, or other. Undergrads select their level and courses get auto-populated. Postgrads set up modules or thesis work. You only confirm pages and exam dates.</p>
+              </div>
+            </div>
+            <div class="how-step">
+              <div class="step-n">03</div>
+              <div>
+                <div class="step-title">Calibrate your reading speed</div>
+                <p class="step-desc">Answer a short questionnaire or take a quick reading test. The AI uses this to build a realistic daily plan, with no generic estimates.</p>
+              </div>
+            </div>
+            <div class="how-step">
+              <div class="step-n">04</div>
+              <div>
+                <div class="step-title">Study, log, and note</div>
+                <p class="step-desc">Log sessions by pages read and duration. Add typed notes or record a voice note after each session. Your streak grows automatically.</p>
+              </div>
+            </div>
+            <div class="how-step">
+              <div class="step-n">05</div>
+              <div>
+                <div class="step-title">Get smarter over time</div>
+                <p class="step-desc">The AI learns your patterns, surfaces review questions from past notes, adjusts your schedule as exams approach, and keeps you from falling behind.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="section-wrap">
+      <h2 class="cta-h2">Your streak starts today.</h2>
+      <p class="cta-sub">Free for all university students. No credit card, no setup fee. Just better study habits.</p>
+      <a href="index.html?tab=signup" class="btn-cta">Create free account <i class="bi bi-arrow-right"></i></a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-brand">🔥 ReadSmartly</span>
+      <span class="footer-copy">2026 CS Thesis Project &#8211; Fera Babs &middot; <a href="https://ferasportfolio.vercel.app/" target="_blank" rel="noopener" style="color:rgba(255,255,255,0.45);text-decoration:underline;text-underline-offset:3px;">Portfolio</a></span>
+      <div class="footer-links">
+        <a href="index.html">Log in</a>
+        <a href="index.html?tab=signup">Sign up</a>
+      </div>
+    </div>
+  </footer>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Scroll reveal for steps
+    const steps = document.querySelectorAll('.how-step');
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.15 });
+    steps.forEach(s => io.observe(s));
+  </script>

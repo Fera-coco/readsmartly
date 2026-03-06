@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadSmartly: Setup</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy:#0F172A;--navy-2:#1E293B;--blue:#2563EB;--blue-2:#1D4ED8;--blue-lt:#EFF6FF;
+      --slate:#64748B;--border:#E2E8F0;--bg:#F8FAFC;--white:#FFFFFF;
+      --amber:#F59E0B;--green:#10B981;--red:#EF4444;
+      --font-head:'Bricolage Grotesque',sans-serif;--font-body:'Outfit',sans-serif;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:var(--font-body);background:var(--bg);color:var(--navy);min-height:100vh;display:flex;flex-direction:column;}
+    .ob-topbar{height:60px;background:var(--navy);display:flex;align-items:center;padding:0 2rem;flex-shrink:0;}
+    .ob-brand{font-family:var(--font-head);font-weight:800;font-size:1.1rem;color:#fff;letter-spacing:-0.02em;}
+    .ob-skip{margin-left:auto;font-size:0.8rem;color:rgba(255,255,255,0.35);cursor:pointer;text-decoration:none;transition:color 0.2s;}
+    .ob-skip:hover{color:rgba(255,255,255,0.7);}
+    .ob-progress-wrap{background:var(--navy);padding:0 2rem 1.25rem;flex-shrink:0;}
+    .ob-steps{display:flex;gap:0.5rem;max-width:620px;margin:0 auto;}
+    .ob-step-seg{flex:1;height:3px;border-radius:100px;background:rgba(255,255,255,0.12);transition:background 0.4s;}
+    .ob-step-seg.done{background:var(--blue);}
+    .ob-step-seg.active{background:rgba(37,99,235,0.5);}
+    .ob-step-label{display:flex;max-width:620px;margin:0.5rem auto 0;}
+    .ob-step-lbl{font-size:0.62rem;color:rgba(255,255,255,0.25);text-transform:uppercase;letter-spacing:0.07em;flex:1;text-align:center;transition:color 0.3s;}
+    .ob-step-lbl.active{color:rgba(255,255,255,0.75);}
+    .ob-step-lbl.done{color:#93C5FD;}
+    .ob-main{flex:1;display:flex;align-items:flex-start;justify-content:center;padding:3rem 1.5rem 5rem;}
+    .ob-card{width:100%;max-width:640px;background:var(--white);border:1px solid var(--border);border-radius:20px;padding:2.5rem;box-shadow:0 8px 40px rgba(15,23,42,0.08);animation:slideIn 0.35s ease both;}
+    @keyframes slideIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+    .ob-step{display:none;}.ob-step.active{display:block;}
+    .step-emoji{font-size:2.5rem;display:block;margin-bottom:1rem;}
+    .step-h{font-family:var(--font-head);font-weight:800;font-size:1.6rem;letter-spacing:-0.02em;color:var(--navy);margin-bottom:0.4rem;}
+    .step-sub{font-size:0.95rem;color:var(--slate);line-height:1.65;margin-bottom:2rem;}
+    .field-label{font-size:0.82rem;font-weight:600;color:var(--navy-2);display:block;margin-bottom:0.4rem;}
+    .field-hint{font-size:0.76rem;color:var(--slate);margin-top:0.25rem;}
+    .field-input{width:100%;padding:0.75rem 1rem;border:1.5px solid var(--border);border-radius:10px;font-family:var(--font-body);font-size:0.95rem;color:var(--navy);background:var(--white);outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+    .field-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1);}
+    .field-input::placeholder{color:#CBD5E1;}
+    .ai-preview{background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:12px;padding:1rem 1.1rem;margin-top:1rem;display:flex;align-items:flex-start;gap:0.75rem;}
+    .ai-avatar{width:36px;height:36px;border-radius:10px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+    .ai-bubble{font-size:0.875rem;color:var(--navy-2);line-height:1.55;}
+    .ai-bubble strong{color:var(--blue);}
+
+    /* Course builder */
+    .course-list{display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1rem;}
+    .course-row{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;animation:slideIn 0.25s ease both;}
+    .cinput-label{font-size:0.66rem;color:var(--slate);margin-bottom:0.25rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+    .cinput{width:100%;padding:0.55rem 0.75rem;border:1.5px solid var(--border);border-radius:8px;font-family:var(--font-body);font-size:0.875rem;color:var(--navy);background:var(--white);outline:none;transition:border-color 0.2s;}
+    .cinput:focus{border-color:var(--blue);}
+    .cinput::placeholder{color:#CBD5E1;}
+    .btn-remove-course{background:none;border:none;color:var(--slate);cursor:pointer;border-radius:8px;padding:0.35rem 0.45rem;transition:all 0.2s;font-size:0.95rem;}
+    .btn-remove-course:hover{background:#FEF2F2;color:var(--red);}
+    .btn-add-course{display:flex;align-items:center;gap:0.5rem;background:none;border:1.5px dashed var(--border);border-radius:10px;padding:0.7rem 1rem;width:100%;font-family:var(--font-body);font-size:0.875rem;color:var(--slate);cursor:pointer;transition:all 0.2s;}
+    .btn-add-course:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-lt);}
+
+    /* Q blocks */
+    .q-block{margin-bottom:1.5rem;}
+    .q-label{font-size:0.9rem;font-weight:600;color:var(--navy);margin-bottom:0.75rem;display:block;}
+    .q-options{display:flex;flex-direction:column;gap:0.5rem;}
+    .q-opt{display:flex;align-items:center;gap:0.75rem;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:0.7rem 1rem;cursor:pointer;transition:all 0.2s;font-size:0.875rem;color:var(--navy);user-select:none;}
+    .q-opt:hover{border-color:var(--blue);background:var(--blue-lt);}
+    .q-opt.selected{border-color:var(--blue);background:var(--blue-lt);color:var(--blue);font-weight:600;}
+    .q-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+    .q-opt.selected .q-radio{border-color:var(--blue);background:var(--blue);}
+    .q-opt.selected .q-radio::after{content:'';width:7px;height:7px;border-radius:50%;background:#fff;}
+    .speed-card{background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:14px;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1.25rem;margin-top:1.25rem;}
+    .speed-num{font-family:var(--font-head);font-size:2.8rem;font-weight:800;color:var(--blue);line-height:1;}
+    .speed-unit{font-size:0.75rem;color:var(--slate);margin-top:0.15rem;}
+    .speed-desc{font-size:0.85rem;color:var(--navy-2);line-height:1.55;}
+
+    /* Test */
+    .btn-test-toggle{display:inline-flex;align-items:center;gap:0.5rem;background:none;border:1.5px solid var(--border);border-radius:10px;padding:0.6rem 1rem;font-family:var(--font-body);font-size:0.82rem;font-weight:500;color:var(--slate);cursor:pointer;transition:all 0.2s;}
+    .btn-test-toggle:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-lt);}
+    .test-outer{border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:1rem 0;}
+    .test-timer-bar{height:5px;background:var(--border);}
+    .test-timer-fill{height:100%;background:var(--blue);width:100%;transition:width 1s linear;}
+    .test-head{padding:1rem 1.25rem;background:var(--bg);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+    .test-lbl{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--slate);}
+    .timer-display{font-family:var(--font-head);font-size:1.4rem;font-weight:800;color:var(--navy);}
+    .timer-display.urgent{color:var(--red);}
+    .test-passage-area{padding:1.5rem;max-height:280px;overflow-y:auto;}
+    .test-passage p{font-size:0.9rem;line-height:1.85;color:var(--navy-2);margin-bottom:0.875rem;}
+    .test-passage p:last-child{margin-bottom:0;}
+    .comp-wrap{padding:1.25rem;background:var(--bg);border-top:1px solid var(--border);}
+    .comp-title{font-family:var(--font-head);font-weight:700;font-size:0.9rem;color:var(--navy);margin-bottom:1rem;}
+    .comp-q{margin-bottom:1rem;}
+    .comp-q-text{font-size:0.875rem;color:var(--navy-2);margin-bottom:0.5rem;font-weight:500;}
+    .comp-opt{display:flex;align-items:center;gap:0.6rem;font-size:0.825rem;padding:0.5rem 0.7rem;border-radius:8px;cursor:pointer;border:1px solid var(--border);background:var(--white);transition:all 0.15s;margin-bottom:0.35rem;}
+    .comp-opt:hover{border-color:var(--blue);background:var(--blue-lt);}
+    .comp-opt.sel{border-color:var(--blue);background:var(--blue-lt);}
+    .comp-opt.correct{border-color:var(--green);background:#F0FDF4;color:#15803D;}
+    .comp-opt.wrong{border-color:var(--red);background:#FEF2F2;color:#DC2626;}
+    .comp-result-card{background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:10px;padding:1rem 1.1rem;margin-top:0.75rem;text-align:center;display:none;}
+    .wpm-big{font-family:var(--font-head);font-size:2.2rem;font-weight:800;color:var(--blue);}
+
+    /* Schedule */
+    .sch-header{background:var(--navy);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;}
+    .sch-t{font-family:var(--font-head);font-weight:700;font-size:1rem;color:#fff;}
+    .sch-s{font-size:0.76rem;color:rgba(255,255,255,0.45);margin-top:0.15rem;}
+    .sch-badge{background:rgba(245,158,11,0.2);border:1px solid rgba(245,158,11,0.3);color:var(--amber);border-radius:6px;padding:0.25rem 0.6rem;font-size:0.72rem;font-weight:600;white-space:nowrap;}
+    .sch-row{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:0.875rem 1rem;margin-bottom:0.625rem;display:flex;justify-content:space-between;align-items:center;}
+    .sch-name{font-family:var(--font-head);font-weight:700;font-size:0.9rem;color:var(--navy);}
+    .sch-code{font-size:0.7rem;color:var(--blue);font-weight:700;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.1rem;}
+    .sch-meta{font-size:0.76rem;color:var(--slate);margin-top:0.15rem;}
+    .sch-ppd{font-family:var(--font-head);font-weight:800;font-size:1.3rem;color:var(--blue);text-align:right;}
+    .sch-unit{font-size:0.7rem;color:var(--slate);}
+    .sch-goal{background:var(--green);border-radius:12px;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;margin-top:0.75rem;}
+    .sch-gnum{font-family:var(--font-head);font-size:2rem;font-weight:800;color:#fff;line-height:1;}
+    .sch-gtxt{font-size:0.875rem;color:rgba(255,255,255,0.85);line-height:1.5;}
+
+    /* Buttons */
+    .btn-primary{background:var(--blue);color:#fff;border:none;border-radius:10px;padding:0.8rem 1.75rem;font-family:var(--font-body);font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.5rem;}
+    .btn-primary:hover{background:var(--blue-2);transform:translateY(-1px);box-shadow:0 6px 20px rgba(37,99,235,0.3);}
+    .btn-primary:disabled{opacity:0.45;cursor:not-allowed;transform:none;box-shadow:none;}
+    .btn-ghost{background:none;border:1.5px solid var(--border);border-radius:10px;padding:0.8rem 1.5rem;font-family:var(--font-body);font-size:0.875rem;font-weight:500;color:var(--slate);cursor:pointer;transition:all 0.2s;}
+    .btn-ghost:hover{border-color:var(--navy-2);color:var(--navy);}
+    .btn-sm-ghost{background:none;border:1.5px solid var(--border);border-radius:8px;padding:0.5rem 1rem;font-family:var(--font-body);font-size:0.82rem;font-weight:500;color:var(--slate);cursor:pointer;transition:all 0.2s;}
+    .btn-sm-ghost:hover{border-color:var(--blue);color:var(--blue);}
+    .btn-sm-primary{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:0.5rem 1rem;font-family:var(--font-body);font-size:0.82rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.35rem;}
+    .btn-sm-primary:hover{background:var(--blue-2);}
+    .btn-footer{display:flex;justify-content:space-between;align-items:center;margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border);}
+
+    /* Saving */
+    .saving-overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;}
+    .saving-overlay.show{display:flex;}
+    .saving-card{background:var(--white);border-radius:20px;padding:2.5rem;text-align:center;max-width:300px;width:90%;box-shadow:0 24px 60px rgba(15,23,42,0.2);}
+    .saving-spinner{width:48px;height:48px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 1rem;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .saving-title{font-family:var(--font-head);font-weight:800;font-size:1.1rem;color:var(--navy);margin-bottom:0.35rem;}
+    @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+  </style>
+</head>
+<body>
+
+<div class="ob-topbar">
+  <div class="ob-brand"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:-4px;flex-shrink:0;"><rect x="2" y="4" width="12" height="15" rx="1.5" fill="#2563EB" opacity="0.85"/><rect x="4" y="4" width="12" height="15" rx="1.5" fill="#2563EB"/><rect x="4" y="4" width="12" height="15" rx="1.5" fill="white" opacity="0.12"/><line x1="7" y1="9" x2="13" y2="9" stroke="white" stroke-width="1.4" stroke-linecap="round"/><line x1="7" y1="12" x2="11" y2="12" stroke="white" stroke-width="1.4" stroke-linecap="round"/><circle cx="17" cy="6" r="4" fill="#10B981"/><path d="M17 8.5V3.5M17 3.5L15 5.5M17 3.5L19 5.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> ReadSmartly</div>
+  <a class="ob-skip" onclick="skipOnboarding()">Skip setup for now →</a>
+</div>
+<div class="ob-progress-wrap">
+  <div class="ob-steps">
+    <div class="ob-step-seg active" id="seg-1"></div>
+    <div class="ob-step-seg" id="seg-2"></div>
+    <div class="ob-step-seg" id="seg-3"></div>
+    <div class="ob-step-seg" id="seg-4"></div>
+    <div class="ob-step-seg" id="seg-5"></div>
+  </div>
+  <div class="ob-step-label">
+    <span class="ob-step-lbl active" id="lbl-1">Welcome</span>
+    <span class="ob-step-lbl" id="lbl-2">Courses</span>
+    <span class="ob-step-lbl" id="lbl-3">Speed</span>
+    <span class="ob-step-lbl" id="lbl-4">Plan</span>
+    <span class="ob-step-lbl" id="lbl-5">Done</span>
+  </div>
+</div>
+
+<div class="ob-main"><div class="ob-card">
+
+  <!-- STEP 1: Welcome + Study Type -->
+  <div class="ob-step active" id="step-1">
+    <span class="step-emoji">👋</span>
+    <h1 class="step-h">Let's set you up</h1>
+    <p class="step-sub">Two minutes. Tell us a bit about yourself and we'll build a study schedule that actually fits your semester.</p>
+    <div class="mb-3">
+      <label class="field-label">What's your name?</label>
+      <input type="text" class="field-input" id="userName" placeholder="e.g., Kwame" autocomplete="given-name" oninput="updatePreview()">
+    </div>
+    <div class="mb-3">
+      <label class="field-label">Name your AI assistant <span style="font-weight:400;color:var(--slate)">(optional)</span></label>
+      <input type="text" class="field-input" id="aiName" placeholder="e.g., Nova, Sage, Aria…" oninput="updatePreview()">
+      <div class="field-hint">You can change this from your profile later</div>
+    </div>
+    <div class="mb-3">
+      <label class="field-label">What type of student are you?</label>
+      <div id="studyTypeOptions" style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.25rem;">
+        <div class="q-opt" onclick="selectStudyType('undergrad',this)" id="st-undergrad">
+          <div class="q-radio"></div>
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;">Undergraduate</div>
+            <div style="font-size:0.78rem;color:var(--slate);margin-top:0.1rem;">Bachelor's degree student. We'll auto-suggest courses for your year and programme.</div>
+          </div>
+        </div>
+        <div class="q-opt" onclick="selectStudyType('postgrad',this)" id="st-postgrad">
+          <div class="q-radio"></div>
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;">Postgraduate</div>
+            <div style="font-size:0.78rem;color:var(--slate);margin-top:0.1rem;">Master's or PhD. Set up modules, dissertation chapters, or thesis sections.</div>
+          </div>
+        </div>
+        <div class="q-opt" onclick="selectStudyType('other',this)" id="st-other">
+          <div class="q-radio"></div>
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;">Other / Self-study</div>
+            <div style="font-size:0.78rem;color:var(--slate);margin-top:0.1rem;">Professional exams, certifications, or independent learning. Add any reading tasks manually.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="ai-preview">
+      <div class="ai-avatar">🤖</div>
+      <div class="ai-bubble" id="aiPreviewText">Hi there! I'm your AI study assistant. Tell me your name and what to call me above.</div>
+    </div>
+    <div class="btn-footer">
+      <div></div>
+      <button class="btn-primary" onclick="goStep(2)">Continue <i class="bi bi-arrow-right ms-1"></i></button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Personalized Course Setup -->
+  <div class="ob-step" id="step-2">
+    <span class="step-emoji">📚</span>
+    <h1 class="step-h" id="step2Heading">Your courses this semester</h1>
+    <p class="step-sub" id="step2Sub">Add each course. The AI uses your page count and exam date to calculate daily reading targets.</p>
+
+    <!-- Undergrad sub-options -->
+    <div id="undergradExtras" style="display:none;margin-bottom:1.25rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
+        <div>
+          <label class="field-label">Year of study</label>
+          <select class="field-input" id="undergradYear" onchange="updateCourseTemplates()">
+            <option value="">Select year</option>
+            <option value="1">Year 1 (Foundation)</option>
+            <option value="2">Year 2 (Intermediate)</option>
+            <option value="3">Year 3 (Advanced)</option>
+            <option value="4">Year 4 / Final Year</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Programme / Faculty</label>
+          <select class="field-input" id="undergradProgramme" onchange="updateCourseTemplates()">
+            <option value="">Select programme</option>
+            <option value="sciences">Sciences</option>
+            <option value="engineering">Engineering</option>
+            <option value="social_sci">Social Sciences</option>
+            <option value="humanities">Humanities / Arts</option>
+            <option value="business">Business / Economics</option>
+            <option value="law">Law</option>
+            <option value="medicine">Medicine / Health</option>
+            <option value="computing">Computing / IT</option>
+            <option value="education">Education</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+      </div>
+      <div id="courseTemplateArea" style="display:none;background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:12px;padding:1rem 1.1rem;margin-bottom:1rem;">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--blue);margin-bottom:0.6rem;">Suggested courses for your year and programme:</div>
+        <div id="courseTemplateList" style="display:flex;flex-direction:column;gap:0.4rem;"></div>
+        <button class="btn-sm-ghost mt-2" onclick="addAllTemplates()" style="font-size:0.78rem;"><i class="bi bi-plus-circle me-1"></i> Add all suggested courses</button>
+      </div>
+    </div>
+
+    <!-- Postgrad sub-options -->
+    <div id="postgradExtras" style="display:none;margin-bottom:1.25rem;">
+      <div style="margin-bottom:0.875rem;">
+        <label class="field-label">Postgraduate type</label>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;" id="pgTypeOptions">
+          <div class="q-opt" style="flex:1;min-width:120px;" onclick="selectPGType('taught',this)"><div class="q-radio"></div><div><div style="font-size:0.85rem;font-weight:600;">Taught MSc / MA</div></div></div>
+          <div class="q-opt" style="flex:1;min-width:120px;" onclick="selectPGType('research',this)"><div class="q-radio"></div><div><div style="font-size:0.85rem;font-weight:600;">Research / MRes</div></div></div>
+          <div class="q-opt" style="flex:1;min-width:120px;" onclick="selectPGType('phd',this)"><div class="q-radio"></div><div><div style="font-size:0.85rem;font-weight:600;">PhD / DPhil</div></div></div>
+        </div>
+      </div>
+      <div id="pgModuleHint" style="display:none;background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:10px;padding:0.75rem 1rem;font-size:0.82rem;color:var(--navy-2);margin-bottom:0.75rem;">
+        <i class="bi bi-lightbulb me-1 text-primary"></i> <span id="pgHintText"></span>
+      </div>
+    </div>
+
+    <div class="course-list" id="courseList"></div>
+    <button class="btn-add-course" onclick="addCourseRow()"><i class="bi bi-plus-circle"></i> Add another <span id="addBtnLabel">course</span></button>
+    <div class="btn-footer">
+      <button class="btn-ghost" onclick="goStep(1)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+      <button class="btn-primary" onclick="goStep(3)">Continue <i class="bi bi-arrow-right ms-1"></i></button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="ob-step" id="step-3">
+    <span class="step-emoji">⚡</span>
+    <h1 class="step-h">Reading speed test</h1>
+    <p class="step-sub">Read the passage below, then press Start Timer when you are ready. After 60 seconds you will answer two quick questions and your WPM will be calculated automatically.</p>
+
+    <!-- PASSAGE SHOWN FIRST, ALWAYS VISIBLE -->
+    <div id="stateReady">
+      <div class="test-outer">
+        <div class="test-head" style="flex-direction:column;align-items:flex-start;gap:0.5rem;">
+          <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
+            <span class="test-lbl" id="passageLbl">Passage 1 of 3</span>
+            <span style="font-size:0.72rem;color:var(--slate);">Read it through once first</span>
+          </div>
+          <button class="btn-sm-primary" id="startTimerBtn" onclick="startTimer()" style="align-self:flex-start;">
+            <i class="bi bi-play-fill me-1"></i> Start Timer
+          </button>
+        </div>
+        <div class="test-passage-area"><div class="test-passage" id="passageText"></div></div>
+      </div>
+    </div>
+
+    <!-- RUNNING STATE -->
+    <div id="stateRunning" style="display:none;">
+      <div class="test-outer">
+        <div class="test-timer-bar"><div class="test-timer-fill" id="timerFill"></div></div>
+        <div class="test-head">
+          <span class="test-lbl">Timer is running. Keep reading!</span>
+          <span class="timer-display" id="timerDisplay">60</span>
+        </div>
+        <div class="test-passage-area"><div class="test-passage" id="passageRunning"></div></div>
+      </div>
+      <button class="btn-sm-ghost mt-2" onclick="stopTimer()"><i class="bi bi-stop-fill me-1"></i> I stopped reading here</button>
+    </div>
+
+    <!-- COMPREHENSION STATE -->
+    <div id="stateComp" style="display:none;">
+      <div class="test-outer">
+        <div class="comp-wrap">
+          <div class="comp-title">Quick comprehension check:</div>
+          <div id="compQs"></div>
+          <button class="btn-sm-primary mt-2" id="submitCompBtn" style="display:none;" onclick="submitComp()">
+            <i class="bi bi-check me-1"></i> Submit answers
+          </button>
+          <div class="comp-result-card" id="compResult">
+            <div class="wpm-big" id="wpmNum">200</div>
+            <div style="font-size:0.82rem;color:var(--slate);margin-bottom:0.35rem;">words per minute</div>
+            <div style="font-size:0.8rem;color:var(--navy-2);" id="wpmDetail"></div>
+          </div>
+          <div id="retakeWrap" style="display:none;margin-top:0.75rem;">
+            <button class="btn-sm-ghost" onclick="retakeTest()">Try a different passage</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SPEED RESULT CARD (shown after test complete) -->
+    <div class="speed-card" id="speedEstCard" style="display:none;margin-top:1rem;">
+      <div><div class="speed-num" id="speedEstNum">200</div><div class="speed-unit">words / min</div></div>
+      <div class="speed-desc" id="speedEstDesc"></div>
+    </div>
+
+    <!-- Follow-up questions (shown after test, gives extra context) -->
+    <div id="followUpQs" style="display:none;margin-top:1.5rem;">
+      <div style="font-size:0.8rem;font-weight:600;color:var(--slate);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:1rem;">A couple more questions to refine your plan:</div>
+      <div class="q-block">
+        <label class="q-label">When reading academic material, how long before your focus typically drops?</label>
+        <div class="q-options" id="q2">
+          <div class="q-opt" onclick="selectQ('q2',this,-20)"><div class="q-radio"></div> Under 20 minutes</div>
+          <div class="q-opt" onclick="selectQ('q2',this,0)"><div class="q-radio"></div> 20 to 40 minutes</div>
+          <div class="q-opt" onclick="selectQ('q2',this,20)"><div class="q-radio"></div> Over 40 minutes</div>
+        </div>
+      </div>
+      <div class="q-block">
+        <label class="q-label">How familiar are you with your main course topics?</label>
+        <div class="q-options" id="q3">
+          <div class="q-opt" onclick="selectQ('q3',this,-20)"><div class="q-radio"></div> Mostly new, I need to read carefully</div>
+          <div class="q-opt" onclick="selectQ('q3',this,0)"><div class="q-radio"></div> Somewhat familiar, some review and some new</div>
+          <div class="q-opt" onclick="selectQ('q3',this,20)"><div class="q-radio"></div> Very familiar, building on existing knowledge</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-footer">
+      <button class="btn-ghost" onclick="goStep(2)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+      <button class="btn-primary" id="speedNextBtn" onclick="goStep(4)" disabled>Continue <i class="bi bi-arrow-right ms-1"></i></button>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="ob-step" id="step-4">
+    <span class="step-emoji">🗓️</span>
+    <h1 class="step-h">Your personalised study plan</h1>
+    <p class="step-sub">Based on your courses, reading speed, and exam dates. Here is what your AI recommends reading each day.</p>
+    <div id="schedPreview"></div>
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:1rem 1.1rem;margin-top:1rem;font-size:0.82rem;color:var(--slate);line-height:1.6;">
+      <i class="bi bi-info-circle me-1 text-primary"></i>
+      This plan adjusts automatically as you log sessions. Fall behind and pages get redistributed. Pull ahead, it eases off.
+    </div>
+    <div class="btn-footer">
+      <button class="btn-ghost" onclick="goStep(3)"><i class="bi bi-arrow-left me-1"></i> Back</button>
+      <button class="btn-primary" onclick="saveAndFinish()">Save my plan <i class="bi bi-check-lg ms-1"></i></button>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="ob-step" id="step-5" style="text-align:center;">
+    <span class="step-emoji">🎉</span>
+    <h1 class="step-h">You're all set!</h1>
+    <p class="step-sub" id="doneMsg">Your plan is ready. Let's start building that streak.</p>
+    <div style="background:var(--navy);border-radius:16px;padding:1.5rem;margin:1.5rem 0;text-align:left;">
+      <div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.1em;color:rgba(255,255,255,0.35);margin-bottom:0.75rem;">What's ready for you</div>
+      <div style="display:flex;flex-direction:column;gap:0.6rem;">
+        <div style="display:flex;align-items:center;gap:0.75rem;font-size:0.875rem;color:rgba(255,255,255,0.8);"><i class="bi bi-check-circle-fill text-success"></i> Courses added to your task list</div>
+        <div style="display:flex;align-items:center;gap:0.75rem;font-size:0.875rem;color:rgba(255,255,255,0.8);"><i class="bi bi-check-circle-fill text-success"></i> Daily page targets calculated</div>
+        <div style="display:flex;align-items:center;gap:0.75rem;font-size:0.875rem;color:rgba(255,255,255,0.8);"><i class="bi bi-check-circle-fill text-success"></i> Reading speed profile saved</div>
+        <div style="display:flex;align-items:center;gap:0.75rem;font-size:0.875rem;color:rgba(255,255,255,0.8);"><i class="bi bi-check-circle-fill text-success"></i> AI assistant personalised</div>
+      </div>
+    </div>
+    <button class="btn-primary w-100" onclick="goHome()" style="padding:1rem;font-size:1rem;justify-content:center;">
+      Go to my dashboard <i class="bi bi-arrow-right ms-1"></i>
+    </button>
+  </div>
+
+</div></div><!-- /ob-card /ob-main -->
+
+<div class="saving-overlay" id="savingOverlay">
+  <div class="saving-card">
+    <div class="saving-spinner"></div>
+    <div class="saving-title">Building your plan…</div>
+    <div style="font-size:0.85rem;color:var(--slate);">Saving courses and generating your schedule</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module">
+import { auth, db } from './firebase-config.js';
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc, addDoc, collection, Timestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let uid       = null;
+let qWPM      = 0;    // from questionnaire
+let finalWPM  = 0;    // from test (overrides q if done)
+let qScores   = {q2:null,q3:null};   // q1 replaced by timed test
+let passageIdx= 0;
+let secElapsed= 0;
+let timerRef  = null;
+let compAns   = {};
+
+const PASSAGES = [
+  { title:'The Science of Memory', wc:203,
+    html:`<p>Memory is not a single system but a collection of distinct processes working in concert. Short-term memory, sometimes called working memory, holds information for seconds to minutes, enough to dial a phone number you just looked up. Long-term memory can store information for decades, sometimes for a lifetime.</p><p>The process of converting short-term memories into long-term ones is called consolidation. Sleep plays a critical role here: during deep sleep, the brain replays the day's experiences, strengthening the neural pathways associated with new learning. Students who pull all-nighters before exams often find information evaporates quickly, while those who study and then sleep retain material far longer.</p><p>Retrieval, the act of pulling a memory back into conscious awareness, is itself a form of practice. Each time you recall information, you strengthen the memory trace, making future recall easier. This is the principle behind spaced repetition: instead of reviewing material once intensively, you revisit it multiple times at increasing intervals, forcing active retrieval each time.</p>`,
+    qs:[
+      {q:'What is memory consolidation?',opts:['Forgetting information over time','Converting short-term memories to long-term ones','The act of recalling information','A type of working memory'],ans:1},
+      {q:'What does retrieval practice do?',opts:['Weakens the memory through overuse','Has no effect on future recall','Strengthens the memory trace','Converts it to short-term storage'],ans:2}
+    ]
+  },
+  { title:'Why Deep Work Matters', wc:198,
+    html:`<p>In an age of constant notifications and open-plan offices, the ability to concentrate intensely on a cognitively demanding task has become increasingly rare, and increasingly valuable. Computer scientist Cal Newport calls this state of intense concentration "deep work" and argues it is the defining skill for the knowledge economy.</p><p>Shallow work, answering emails, attending routine meetings, scrolling social feeds, consumes most people's working hours without producing lasting value. Deep work, by contrast, pushes cognitive abilities to their limits, creates new value, and is hard to replicate. Writing a research chapter, debugging a complex system, or drafting a legal argument all require this focused state.</p><p>The challenge is that the brain resists deep work. Distraction feels easier and is immediately rewarding in small ways. Training concentration is similar to physical fitness: it requires regular practice, deliberate effort, and tolerance for discomfort. Those who schedule protected blocks of uninterrupted focus, free from phones and notifications, consistently outperform those who work reactively.</p>`,
+    qs:[
+      {q:'What does Cal Newport call "shallow work"?',opts:['Physically easy tasks','Tasks like emails and routine meetings with low lasting value','Any work done in an open office','Deep work at low intensity'],ans:1},
+      {q:'How is training concentration like physical fitness?',opts:['It requires no deliberate effort','It works only for naturally gifted people','It requires regular practice and tolerance for discomfort','It is fundamentally different from physical training'],ans:2}
+    ]
+  },
+  { title:'The Spacing Effect', wc:196,
+    html:`<p>Hermann Ebbinghaus, a nineteenth-century German psychologist, was the first to document what we now call the forgetting curve: without review, people forget roughly half of new information within a day and up to 80% within a month. His work laid the foundation for one of the most reliably replicated findings in cognitive psychology, the spacing effect.</p><p>The spacing effect describes the phenomenon where learning is more durable when practice is distributed over time rather than concentrated in a single session. Studying for six hours across three days produces far better long-term retention than six consecutive hours in one sitting, even though the total study time is identical.</p><p>The mechanism is still debated, but one leading explanation involves memory reconsolidation. Each time you retrieve a memory, it becomes temporarily unstable before being re-stored in a slightly stronger form. Spacing out retrieval events maximises the number of these reconsolidation opportunities. Apps like Anki exploit this principle algorithmically, scheduling each item for review at precisely the interval that makes recall just difficult enough to strengthen the memory.</p>`,
+    qs:[
+      {q:"What did Ebbinghaus's forgetting curve show?",opts:['People forget only 20% within a month','Memory improves naturally over time','People forget roughly half of new information within a day','Spaced learning does not outperform massed learning'],ans:2},
+      {q:'Why does spacing work according to the reconsolidation theory?',opts:['It reduces total study time','It keeps memories in short-term storage','It maximises reconsolidation opportunities through repeated retrieval','It removes the need for review'],ans:2}
+    ]
+  }
+];
+
+// ── AUTH ────────────────────────────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user) { window.location.href = 'index.html'; return; }
+  uid = user.uid;
+
+  const editMode = localStorage.getItem('rs_editSetup');
+  const skip     = localStorage.getItem('rs_skipOnboarding');
+
+  if (editMode) {
+    // User arrived from "Redo setup" in the profile modal.
+    // Clear the flag immediately so refreshes don't loop.
+    localStorage.removeItem('rs_editSetup');
+    // Continue to setup regardless of onboardingDone — this is intentional.
+  } else if (!skip) {
+    const snap = await getDoc(doc(db,'profiles',uid));
+    if (snap.exists() && snap.data().onboardingDone) {
+      window.location.href = 'home.html'; return;
+    }
+  }
+
+  localStorage.removeItem('rs_skipOnboarding');
+  addCourseRow();
+  prepareTest();
+});
+
+// ── SKIP ────────────────────────────────────────────────────────────────────
+window.skipOnboarding = function() {
+  localStorage.setItem('rs_skipOnboarding','1');
+  window.location.href = 'home.html';
+};
+
+// ── STEP NAV ────────────────────────────────────────────────────────────────
+window.goStep = function(n) {
+  const cur = +document.querySelector('.ob-step.active')?.id?.split('-')[1];
+  if (n > cur) {
+    if (cur===1 && !document.getElementById('userName').value.trim()){ shakeEl('userName'); return; }
+    if (n===2) showStep2Personalized();
+    if (cur===2) {
+      const rows = document.querySelectorAll('.course-row');
+      if (!rows.length){ toast('Add at least one course'); return; }
+      let ok=true;
+      rows.forEach(r=>{ const f=r.querySelector('.cn'); if(!f.value.trim()){f.style.borderColor='var(--red)';ok=false;} });
+      if (!ok){ toast('Please enter all course names'); return; }
+    }
+    if (cur===3){
+      if(finalWPM===0){ toast('Please complete the reading test first'); return; }
+    }
+    if (n===4) buildPreview();
+  }
+  document.getElementById(`step-${cur}`).classList.remove('active');
+  document.getElementById(`step-${n}`).classList.add('active');
+  for(let i=1;i<=5;i++){
+    document.getElementById(`seg-${i}`).className='ob-step-seg'+(i<n?' done':i===n?' active':'');
+    document.getElementById(`lbl-${i}`).className='ob-step-lbl'+(i<n?' done':i===n?' active':'');
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+
+// ── STEP 1 ──────────────────────────────────────────────────────────────────
+let selectedStudyType = '';
+
+window.updatePreview = function() {
+  const name=document.getElementById('userName').value.trim();
+  const ai=document.getElementById('aiName').value.trim()||'your AI assistant';
+  document.getElementById('aiPreviewText').innerHTML = name
+    ? `Hi <strong>${name}</strong>! I'm <strong>${ai}</strong>, your personal study companion. I'll help you stay on track and make sure you're ready before every exam.`
+    : `Hi there! I'm <strong>${ai}</strong>. Tell me your name above so I can greet you properly!`;
+};
+
+window.selectStudyType = function(type, el) {
+  selectedStudyType = type;
+  document.querySelectorAll('#studyTypeOptions .q-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('.q-radio').style.cssText = 'border-color:var(--blue);background:var(--blue);';
+  // Track study type selection
+  if (typeof db !== 'undefined' && typeof auth !== 'undefined' && auth.currentUser) {
+    addDoc(collection(db,'analytics'), {
+      userId: auth.currentUser.uid,
+      event:  'onboarding_step',
+      props:  { step: 'study_type_selected', studyType: type },
+      ts:     Timestamp.now(),
+      studyType: type, pgType: null,
+    }).catch(()=>{});
+  }
+};
+
+// ── STEP 2 PERSONALIZATION ───────────────────────────────────────────────────
+let pgType = '';
+let courseTemplates = {
+  sciences:    ['Biology (Core)', 'Chemistry', 'Physics', 'Mathematics', 'Research Methods'],
+  engineering: ['Engineering Mathematics', 'Thermodynamics', 'Materials Science', 'Design & Innovation', 'Lab Reports'],
+  social_sci:  ['Research Methods', 'Statistics for Social Science', 'Sociology Theory', 'Political Economy', 'Dissertation Prep'],
+  humanities:  ['Literary Theory', 'Historical Analysis', 'Philosophy', 'Cultural Studies', 'Extended Essay'],
+  business:    ['Microeconomics', 'Macroeconomics', 'Financial Accounting', 'Marketing', 'Business Strategy'],
+  law:         ['Contract Law', 'Constitutional Law', 'Criminal Law', 'Tort Law', 'Legal Writing'],
+  medicine:    ['Anatomy', 'Physiology', 'Biochemistry', 'Pharmacology', 'Clinical Skills'],
+  computing:   ['Data Structures', 'Algorithms', 'Databases', 'Operating Systems', 'Software Engineering'],
+  education:   ['Pedagogy & Theory', 'Child Development', 'Curriculum Studies', 'Assessment Methods', 'Teaching Practice'],
+  other:       ['Core Module 1', 'Core Module 2', 'Elective', 'Research Module']
+};
+
+function showStep2Personalized() {
+  const type = selectedStudyType;
+  document.getElementById('undergradExtras').style.display = type === 'undergrad' ? 'block' : 'none';
+  document.getElementById('postgradExtras').style.display  = type === 'postgrad'  ? 'block' : 'none';
+
+  if (type === 'undergrad') {
+    document.getElementById('step2Heading').textContent = 'Your courses this semester';
+    document.getElementById('step2Sub').textContent = 'Select your year and programme and we will suggest your courses. You just confirm pages and exam dates.';
+    document.getElementById('addBtnLabel').textContent = 'course';
+  } else if (type === 'postgrad') {
+    document.getElementById('step2Heading').textContent = 'Your modules and reading';
+    document.getElementById('step2Sub').textContent = 'Add each module, chapter set, or dissertation section. The AI will calculate your daily reading target.';
+    document.getElementById('addBtnLabel').textContent = 'module';
+  } else {
+    document.getElementById('step2Heading').textContent = 'Your reading tasks';
+    document.getElementById('step2Sub').textContent = 'Add each book, course, or topic you are working through. Enter the page count and a target completion date.';
+    document.getElementById('addBtnLabel').textContent = 'task';
+  }
+}
+
+window.updateCourseTemplates = function() {
+  const prog  = document.getElementById('undergradProgramme')?.value;
+  const year  = document.getElementById('undergradYear')?.value;
+  if (!prog || !year) return;
+  const templates = courseTemplates[prog] || courseTemplates.other;
+  const area  = document.getElementById('courseTemplateArea');
+  const list  = document.getElementById('courseTemplateList');
+  if (!area || !list) return;
+  list.innerHTML = templates.map((c,i) => `
+    <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.82rem;cursor:pointer;">
+      <input type="checkbox" id="ct-${i}" value="${c}" style="accent-color:var(--blue);" checked>
+      ${c}
+    </label>`).join('');
+  area.style.display = 'block';
+};
+
+window.addAllTemplates = function() {
+  const prog  = document.getElementById('undergradProgramme')?.value;
+  const year  = document.getElementById('undergradYear')?.value;
+  const templates = courseTemplates[prog] || courseTemplates.other;
+  const list  = document.getElementById('courseList');
+  // Clear existing auto-generated rows only
+  list.querySelectorAll('.auto-course').forEach(r => r.remove());
+  templates.forEach((name, i) => {
+    const checked = document.getElementById(`ct-${i}`)?.checked;
+    if (checked === false) return; // skip unchecked
+    const row = document.createElement('div');
+    row.className = 'course-row auto-course';
+    row.innerHTML = buildCourseRowHTML(name, '');
+    list.appendChild(row);
+    row.querySelector('.cn').focus();
+  });
+  window.showToast && window.showToast(`${list.querySelectorAll('.course-row').length} courses added. Fill in page counts and exam dates.`);
+};
+
+window.selectPGType = function(type, el) {
+  pgType = type;
+  document.querySelectorAll('#pgTypeOptions .q-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const hints = {
+    taught:   'Add each module or seminar reading list. We will calculate how much to read per day before each assessment.',
+    research: 'Add each literature review section or paper set. Include your submission deadline so the AI can plan your pace.',
+    phd:      'Add your thesis chapters or reading lists as separate tasks. Use the deadline field for chapter submission dates.',
+  };
+  const hintEl = document.getElementById('pgHintText');
+  const hintWrap = document.getElementById('pgModuleHint');
+  if (hintEl) hintEl.textContent = hints[type] || '';
+  if (hintWrap) hintWrap.style.display = 'block';
+  // Pre-populate with PhD/research defaults
+  if (type === 'phd') {
+    const list = document.getElementById('courseList');
+    if (!list.querySelector('.course-row')) {
+      ['Chapter 1: Literature Review', 'Chapter 2: Methodology', 'Chapter 3: Results', 'Chapter 4: Discussion'].forEach(name => {
+        const row = document.createElement('div');
+        row.className = 'course-row';
+        row.innerHTML = buildCourseRowHTML(name, '');
+        list.appendChild(row);
+      });
+    }
+  }
+};
+
+function buildCourseRowHTML(defaultName, defaultCode) {
+  return `
+    <div class="d-flex gap-2 mb-2 align-items-end">
+      <div style="flex:1;">
+        <div class="cinput-label">Name</div>
+        <input class="cinput cn" placeholder="e.g., Research Methods" value="${defaultName}" oninput="this.style.borderColor='var(--border)'">
+      </div>
+      <div style="width:110px;">
+        <div class="cinput-label">Code (optional)</div>
+        <input class="cinput cc" placeholder="CS301" value="${defaultCode}">
+      </div>
+      <button class="btn-remove-course" onclick="this.closest('.course-row').remove()" title="Remove"><i class="bi bi-trash3"></i></button>
+    </div>
+    <div class="d-flex gap-2">
+      <div style="flex:1;">
+        <div class="cinput-label">Total Pages</div>
+        <input class="cinput cp" type="number" placeholder="e.g., 250" min="1">
+      </div>
+      <div style="flex:1;">
+        <div class="cinput-label">Exam / Deadline Date</div>
+        <input class="cinput ce" type="date">
+      </div>
+    </div>`;
+}
+
+// ── STEP 2 ──────────────────────────────────────────────────────────────────
+window.addCourseRow = function() {
+  const list=document.getElementById('courseList');
+  const row=document.createElement('div');
+  row.className='course-row';
+  row.innerHTML=buildCourseRowHTML('','');
+  list.appendChild(row);
+  row.querySelector('.cn').focus();
+};
+
+// ── STEP 3: Q ───────────────────────────────────────────────────────────────
+window.selectQ = function(qId,el,score) {
+  document.querySelectorAll(`#${qId} .q-opt`).forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  qScores[qId]=score;
+  // Apply follow-up adjustments to finalWPM once both answered
+  if(qScores.q2!==null && qScores.q3!==null && finalWPM>0){
+    const adj = qScores.q2 + qScores.q3; // -40 to +40 WPM adjustment
+    const adjusted = Math.max(60, Math.min(finalWPM + adj, 700));
+    document.getElementById('speedEstNum').textContent=adjusted;
+    const desc = adjusted<150?'Careful, thorough reader. Short focused sessions will suit you best.'
+      :adjusted<250?'Average pace, well-suited for university coursework.'
+      :adjusted<400?'Efficient reader. You can handle longer study sessions.'
+      :'Fast reader. Challenge yourself with more material per session.';
+    document.getElementById('speedEstDesc').textContent=desc;
+    // Update finalWPM with adjusted value
+    finalWPM = adjusted;
+  }
+};
+
+// ── READING TEST ─────────────────────────────────────────────────────────────
+function setState(s){
+  ['stateReady','stateRunning','stateComp'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='none';
+  });
+  const target=document.getElementById('state'+s);
+  if(target) target.style.display='block';
+}
+
+window.prepareTest = function() {
+  clearInterval(timerRef);
+  secElapsed=0; compAns={};
+  const p=PASSAGES[passageIdx%PASSAGES.length];
+  const passText=document.getElementById('passageText');
+  const passRun=document.getElementById('passageRunning');
+  if(passText) passText.innerHTML=p.html;
+  if(passRun)  passRun.innerHTML=p.html;
+  const lbl=document.getElementById('passageLbl');
+  if(lbl) lbl.textContent=`Passage ${(passageIdx%PASSAGES.length)+1} of ${PASSAGES.length}`;
+  setState('Ready');
+  // Reset timer display
+  const td=document.getElementById('timerDisplay'); if(td) td.textContent='60'; td?.classList.remove('urgent');
+  const tf=document.getElementById('timerFill'); if(tf){tf.style.transition='none';tf.style.width='100%';}
+  document.getElementById('compResult').style.display='none';
+  document.getElementById('retakeWrap').style.display='none';
+  const sb=document.getElementById('startTimerBtn'); if(sb) sb.disabled=false;
+};
+
+window.retakeTest = function() {
+  passageIdx++;
+  prepareTest();
+};
+
+window.startTimer = function() {
+  const fill=document.getElementById('timerFill');
+  const disp=document.getElementById('timerDisplay');
+  secElapsed=0;
+  setState('Running');
+  fill.style.transition='none'; fill.style.width='100%';
+  requestAnimationFrame(()=>{fill.style.transition='width 60s linear';fill.style.width='0%';});
+  timerRef=setInterval(()=>{
+    secElapsed++;
+    const rem=60-secElapsed;
+    disp.textContent=rem;
+    if(rem<=10) disp.classList.add('urgent');
+    if(rem<=0){ clearInterval(timerRef); showComp(); }
+  },1000);
+};
+
+window.stopTimer = function() {
+  clearInterval(timerRef);
+  showComp();
+};
+
+function showComp() {
+  const p=PASSAGES[passageIdx%PASSAGES.length];
+  setState('Comp');
+  const container=document.getElementById('compQs');
+  container.innerHTML='';
+  compAns={};
+  p.qs.forEach((q,qi)=>{
+    const d=document.createElement('div');
+    d.className='comp-q';
+    d.innerHTML=`<div class="comp-q-text">${qi+1}. ${q.q}</div>`
+      +q.opts.map((o,oi)=>`<div class="comp-opt" id="copt-${qi}-${oi}" onclick="pickComp(${qi},${oi},${q.ans})">${o}</div>`).join('');
+    container.appendChild(d);
+  });
+  document.getElementById('submitCompBtn').style.display='none';
+  document.getElementById('compResult').style.display='none';
+  document.getElementById('retakeWrap').style.display='none';
+}
+
+window.pickComp = function(qi,oi,ans) {
+  if(document.getElementById('compResult').style.display==='block') return;
+  const p=PASSAGES[passageIdx%PASSAGES.length];
+  document.querySelectorAll(`[id^="copt-${qi}-"]`).forEach(e=>e.classList.remove('sel'));
+  document.getElementById(`copt-${qi}-${oi}`).classList.add('sel');
+  compAns[qi]=oi;
+  if(Object.keys(compAns).length===p.qs.length) document.getElementById('submitCompBtn').style.display='inline-flex';
+};
+
+window.submitComp = function() {
+  const p=PASSAGES[passageIdx%PASSAGES.length];
+  let correct=0;
+  p.qs.forEach((q,qi)=>{
+    const chosen=compAns[qi];
+    p.qs[qi].opts.forEach((_,oi)=>{
+      const el=document.getElementById(`copt-${qi}-${oi}`);
+      if(!el) return;
+      el.style.pointerEvents='none';
+      if(oi===q.ans) el.classList.add('correct');
+      else if(oi===chosen) el.classList.add('wrong');
+    });
+    if(chosen===q.ans) correct++;
+  });
+  document.getElementById('submitCompBtn').style.display='none';
+
+  const secs=Math.max(secElapsed,1);
+  const acc=correct/p.qs.length;
+  const estW=secs>=60?p.wc:Math.round((secs/60)*p.wc);
+  const raw=Math.round((estW/secs)*60);
+  const adj=Math.round(raw*(0.8+acc*0.2));
+  const wpm=Math.max(60,Math.min(adj,700));
+
+  finalWPM=wpm;
+  document.getElementById('speedEstNum').textContent=wpm;
+  document.getElementById('speedEstCard').style.display='flex';
+  document.getElementById('speedNextBtn').disabled=false;
+
+  document.getElementById('compResult').style.display='block';
+  document.getElementById('wpmNum').textContent=wpm;
+  const note=wpm<150?'Careful reader, dense academic texts will be comfortable.'
+    :wpm<250?'Average pace, well-suited for most university reading.'
+    :wpm<400?'Above average, efficient and effective.'
+    :'Fast reader, great throughput for research-heavy courses.';
+  document.getElementById('wpmDetail').textContent=`${correct}/${p.qs.length} comprehension correct · ${note}`;
+
+  passageIdx++;
+  document.getElementById('retakeWrap').style.display='block';
+  // Show follow-up questions now that test is done
+  const fq=document.getElementById('followUpQs');
+  if(fq) fq.style.display='block';
+};
+
+// ── STEP 4: SCHEDULE PREVIEW ─────────────────────────────────────────────────
+function buildPreview() {
+  const rows=document.querySelectorAll('.course-row');
+  const wpm=finalWPM||qWPM||200;
+  const pph=Math.round((wpm*60)/250); // pages per hour (250 words/page)
+  let courses=[],total=0;
+  rows.forEach(r=>{
+    const name=r.querySelector('.cn').value.trim();
+    const code=r.querySelector('.cc')?.value.trim()||'';
+    const pages=parseInt(r.querySelector('.cp').value)||0;
+    const exam=r.querySelector('.ce').value;
+    if(!name) return;
+    const days=exam?Math.max(1,Math.ceil((new Date(exam)-new Date())/86400000)):30;
+    const ppd=pages>0?Math.ceil(pages/days):0;
+    const mpd=ppd>0?Math.round((ppd/pph)*60):0;
+    total+=ppd;
+    courses.push({name,code,pages,exam,days,ppd,mpd});
+  });
+  const totalMins=Math.round((total/pph)*60);
+  document.getElementById('schedPreview').innerHTML=`
+    <div class="sch-header">
+      <div><div class="sch-t">Daily Study Plan</div><div class="sch-s">${courses.length} course${courses.length!==1?'s':''} · ${total} pages/day total</div></div>
+      <div class="sch-badge">~${totalMins} min/day</div>
+    </div>
+    ${courses.map(c=>`
+      <div class="sch-row">
+        <div>${c.code?`<div class="sch-code">${c.code}</div>`:''}<div class="sch-name">${c.name}</div><div class="sch-meta">${c.pages} pages${c.exam?` · Exam in ${c.days}d`:''}${c.mpd?` · ~${c.mpd} min/day`:''}</div></div>
+        <div style="text-align:right;flex-shrink:0;margin-left:1rem;"><div class="sch-ppd">${c.ppd||'0'}</div><div class="sch-unit">pages/day</div></div>
+      </div>`).join('')}
+    ${total>0?`<div class="sch-goal"><div class="sch-gnum">${total}</div><div class="sch-gtxt"><strong>pages to read today</strong><br>across all your courses to stay on track</div></div>`:''}`;
+  window._sd={courses,total,wpm,pph};
+}
+
+// ── SAVE ─────────────────────────────────────────────────────────────────────
+window.saveAndFinish = async function() {
+  if(!uid){
+    toast('Not logged in. Please refresh and sign in again.');
+    return;
+  }
+  buildPreview();
+  document.getElementById('savingOverlay').classList.add('show');
+
+  try {
+    const name = document.getElementById('userName').value.trim() || 'Student';
+    const ai   = document.getElementById('aiName').value.trim()   || 'Nova';
+    const sd   = window._sd || {courses:[],total:0,wpm:200,pph:48};
+    const wpm  = finalWPM || 200;
+    const pph  = sd.pph   || Math.round((wpm*60)/250);
+
+    // Save profile with merge so we don't overwrite any existing fields
+    const profileData = {
+      userName:       name,
+      aiName:         ai,
+      studyType:      selectedStudyType || 'other',
+      pgType:         pgType || '',
+      readingWPM:     wpm,
+      readingSpeed:   pph,
+      dailyPageGoal:  sd.total || 0,
+      onboardingDone: true,
+      skippedSetup:   false,
+      updatedAt:      Timestamp.now(),
+    };
+    await setDoc(doc(db,'profiles',uid), profileData, { merge: true });
+    // Track onboarding completion
+    try {
+        await addDoc(collection(db,'analytics'), {
+            userId:    uid,
+            event:     'onboarding_completed',
+            props:     { studyType: profileData.studyType, pgType: profileData.pgType || null, courseCount: sd.courses?.filter(c=>c.name).length || 0 },
+            ts:        Timestamp.now(),
+            studyType: profileData.studyType,
+            pgType:    profileData.pgType || null,
+        });
+    } catch(e) { /* analytics failure is silent */ }
+
+    // Save courses as tasks (skip empty rows)
+    for(const course of sd.courses){
+      if(!course.name) continue;
+      const deadline = course.exam
+        ? Timestamp.fromDate(new Date(course.exam))
+        : Timestamp.fromDate(new Date(Date.now() + 30*86400000));
+      await addDoc(collection(db,'tasks'), {
+        userId:      uid,
+        title:       course.code ? `${course.code} - ${course.name}` : course.name,
+        courseCode:  course.code || '',
+        totalPages:  course.pages || 0,
+        pagesRead:   0,
+        deadline:    deadline,
+        pagesPerDay: course.ppd || 0,
+        createdAt:   Timestamp.now(),
+      });
+    }
+
+    localStorage.removeItem('rs_skipOnboarding');
+    document.getElementById('savingOverlay').classList.remove('show');
+    document.getElementById('doneMsg').textContent =
+      `${ai} is ready to help you study, ${name}. Your courses are loaded and daily targets are set. Let's build that streak.`;
+    goStep(5);
+
+  } catch(e) {
+    console.error('Save error:', e);
+    document.getElementById('savingOverlay').classList.remove('show');
+    if(e.code === 'permission-denied' || (e.message && e.message.includes('permission'))){
+      toast('Permission error: Firestore rules need updating. See SETUP.md for instructions.');
+    } else if(e.code === 'unavailable'){
+      toast('No internet connection. Please check your network and try again.');
+    } else {
+      toast('Save failed: ' + (e.message || 'Please try again.'));
+    }
+  }
+};
+
+window.goHome=()=>{ window.location.href='home.html'; };
+
+function shakeEl(id){
+  const el=document.getElementById(id); if(!el) return;
+  el.style.borderColor='var(--red)'; el.style.animation='';
+  requestAnimationFrame(()=>{ el.style.animation='shake 0.4s ease'; }); el.focus();
+}
+function toast(msg){
+  let t=document.getElementById('_toast');
+  if(!t){t=document.createElement('div');t.id='_toast';t.style.cssText='position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(120px);background:#0F172A;color:#fff;padding:0.65rem 1.4rem;border-radius:100px;font-size:0.875rem;font-weight:500;box-shadow:0 8px 30px rgba(15,23,42,0.2);z-index:9999;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);white-space:nowrap;font-family:Outfit,sans-serif;';document.body.appendChild(t);}
+  t.textContent=msg;
+  requestAnimationFrame(()=>t.style.transform='translateX(-50%) translateY(0)');
+  setTimeout(()=>t.style.transform='translateX(-50%) translateY(120px)',3500);
+}
+</script>
+</body>
+</html>

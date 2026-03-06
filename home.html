@@ -1,0 +1,1074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReadSmartly: Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <style>
+    /* ── TOKENS ─────────────────────────────────────────────────── */
+    :root {
+      --navy:   #0F172A;
+      --navy-2: #1E293B;
+      --navy-3: #334155;
+      --blue:   #2563EB;
+      --blue-2: #1D4ED8;
+      --blue-lt:#EFF6FF;
+      --slate:  #64748B;
+      --border: #E2E8F0;
+      --bg:     #F8FAFC;
+      --white:  #FFFFFF;
+      --amber:  #F59E0B;
+      --green:  #10B981;
+      --red:    #EF4444;
+      --font-head: 'Bricolage Grotesque', sans-serif;
+      --font-body: 'Outfit', sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg:     #0B1120;
+      --white:  #111827;
+      --border: rgba(255,255,255,0.08);
+      --slate:  #94A3B8;
+      --navy-2: #E2E8F0;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--navy);
+      padding-bottom: 5rem;
+      transition: background 0.3s, color 0.3s;
+    }
+    [data-theme="dark"] body { color: #E2E8F0; }
+
+    /* ── NAVBAR ─────────────────────────────────────────────────── */
+    .app-nav {
+      background: var(--navy) !important;
+      padding: 0 !important; height: 60px;
+      display: flex; align-items: center;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .nav-inner {
+      width: 100%; max-width: 1100px; margin: 0 auto;
+      padding: 0 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .app-brand {
+      font-family: var(--font-head); font-weight: 800; font-size: 1.1rem;
+      color: #fff; letter-spacing: -0.02em;
+    }
+    .nav-right { display: flex; align-items: center; gap: 0.5rem; }
+    .nav-chip {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.65); border-radius: 7px;
+      padding: 0.28rem 0.75rem; font-size: 0.78rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s; font-family: var(--font-body);
+    }
+    .nav-chip:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+    /* ── MAIN LAYOUT ────────────────────────────────────────────── */
+    .dash-wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+    /* ── GREETING ───────────────────────────────────────────────── */
+    .greeting-row { margin-bottom: 1.25rem; }
+    .greeting-h { font-family: var(--font-head); font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
+    .greeting-h span { color: var(--blue); }
+    .greeting-sub { font-size: 0.875rem; color: var(--slate); margin-top: 0.15rem; }
+
+    /* ── QUOTE ──────────────────────────────────────────────────── */
+    .quote-bar {
+      background: var(--white); border: 1px solid var(--border);
+      border-left: 3px solid var(--amber) !important;
+      border-radius: 10px; padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .quote-text { font-size: 0.85rem; font-style: italic; color: var(--slate); line-height: 1.6; }
+    .quote-auth { font-size: 0.75rem; color: var(--slate); opacity: 0.6; margin-top: 0.2rem; }
+
+    /* ── STREAK CARD ────────────────────────────────────────────── */
+    .streak-card {
+      background: var(--navy);
+      border-radius: 16px; padding: 1.5rem 1.75rem;
+      margin-bottom: 1.25rem; position: relative; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+    .streak-card::after {
+      content: '';
+      position: absolute; right: -10px; top: -18px;
+      font-size: 7rem; opacity: 0.06; pointer-events: none;
+    }
+    .streak-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .streak-lbl { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(255,255,255,0.35); margin-bottom: 0.3rem; }
+    .streak-num {
+      font-family: var(--font-head); font-size: 3.8rem; font-weight: 800; line-height: 1;
+      color: var(--amber);
+    }
+    .streak-unit { font-size: 0.9rem; color: rgba(255,255,255,0.35); margin-left: 0.4rem; }
+    .streak-badge {
+      background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.25);
+      color: var(--amber); border-radius: 7px;
+      padding: 0.3rem 0.75rem; font-size: 0.75rem; font-weight: 600;
+    }
+    .cal-row { display: flex; gap: 0.4rem; margin-top: 1.1rem; }
+    .cal-d {
+      flex: 1; aspect-ratio: 1; border-radius: 8px;
+      background: rgba(255,255,255,0.05);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+      transition: background 0.2s;
+    }
+    .cal-d.hit  { background: rgba(37,99,235,0.3); border: 1px solid rgba(37,99,235,0.4); }
+    .cal-d.now  { outline: 2px solid rgba(245,158,11,0.6); }
+    .cal-dn { font-size: 0.82rem; font-weight: 700; color: rgba(255,255,255,0.8); }
+    .cal-dl { font-size: 0.5rem; color: rgba(255,255,255,0.35); text-transform: uppercase; }
+    .cal-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--amber); }
+
+    /* ── STAT CARDS ─────────────────────────────────────────────── */
+    .stat-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.1rem 1.25rem;
+      transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(15,23,42,0.08); }
+    .stat-icon { font-size: 1.3rem; margin-bottom: 0.5rem; }
+    .stat-val { font-family: var(--font-head); font-size: 1.9rem; font-weight: 800; line-height: 1; color: var(--navy); }
+    [data-theme="dark"] .stat-val { color: #E2E8F0; }
+    .stat-name { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--slate); margin-top: 0.2rem; }
+    .stat-hint { font-size: 0.75rem; color: var(--slate); margin-top: 0.35rem; line-height: 1.45; }
+
+    /* ── AI CARDS ───────────────────────────────────────────────── */
+    .ai-card {
+      border-radius: 12px; padding: 0.9rem 1.1rem; margin-bottom: 0.75rem;
+      border: 1px solid;
+    }
+    .ai-card.blue   { background: var(--blue-lt); border-color: #BFDBFE; }
+    .ai-card.amber  { background: #FFFBEB;        border-color: #FDE68A; }
+    .ai-card.green  { background: #F0FDF4;        border-color: #BBF7D0; }
+    .ai-card.red    { background: #FEF2F2;        border-color: #FECACA; }
+    [data-theme="dark"] .ai-card.blue  { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.25); }
+    [data-theme="dark"] .ai-card.amber { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.2); }
+    [data-theme="dark"] .ai-card.green { background: rgba(16,185,129,0.1); border-color: rgba(16,185,129,0.2); }
+    .ai-tag {
+      display: inline-block; font-size: 0.6rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.07em;
+      padding: 0.15rem 0.45rem; border-radius: 4px; margin-bottom: 0.35rem;
+    }
+    .ai-tag.blue  { background: #DBEAFE; color: var(--blue); }
+    .ai-tag.amber { background: #FEF3C7; color: #92400E; }
+    .ai-tag.green { background: #D1FAE5; color: #065F46; }
+    .ai-card p { font-size: 0.875rem; margin: 0; line-height: 1.6; color: var(--navy-2); }
+    [data-theme="dark"] .ai-card p { color: #CBD5E1; }
+
+    /* ── CHART CARD ─────────────────────────────────────────────── */
+    .chart-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.25rem 1.5rem;
+    }
+    .card-heading {
+      font-family: var(--font-head); font-weight: 700; font-size: 0.9rem;
+      color: var(--navy); margin-bottom: 1rem;
+    }
+    [data-theme="dark"] .card-heading { color: #E2E8F0; }
+
+    /* ── TASKS PANEL ────────────────────────────────────────────── */
+    .tasks-panel {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .panel-header {
+      padding: 1rem 1.5rem; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .panel-title { font-family: var(--font-head); font-weight: 700; font-size: 0.95rem; color: var(--navy); }
+    [data-theme="dark"] .panel-title { color: #E2E8F0; }
+    .panel-count {
+      background: var(--bg); color: var(--slate);
+      border-radius: 6px; padding: 0.2rem 0.6rem;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .panel-body { padding: 1rem 1.5rem 1.5rem; }
+
+    /* Empty state */
+    .empty-state { text-align: center; padding: 2.5rem 1rem; }
+    .empty-icon { font-size: 2.5rem; opacity: 0.25; margin-bottom: 0.75rem; display: block; }
+    .empty-title { font-family: var(--font-head); font-weight: 700; font-size: 0.95rem; color: var(--navy); margin-bottom: 0.3rem; }
+    [data-theme="dark"] .empty-title { color: #E2E8F0; }
+    .empty-sub { font-size: 0.83rem; color: var(--slate); }
+
+    /* Task row */
+    .task-row {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 1rem 1.1rem;
+      margin-bottom: 0.625rem; transition: transform 0.18s, box-shadow 0.18s;
+    }
+    .task-row:last-child { margin-bottom: 0; }
+    .task-row:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(15,23,42,0.07); }
+    .task-name { font-family: var(--font-head); font-weight: 700; font-size: 0.9rem; color: var(--navy); }
+    [data-theme="dark"] .task-name { color: #E2E8F0; }
+    .task-pages { font-size: 0.78rem; color: var(--slate); margin: 0.15rem 0 0.6rem; }
+
+    /* Progress bar */
+    .prog-track { height: 6px; background: var(--border); border-radius: 100px; overflow: hidden; margin-bottom: 0.65rem; }
+    .prog-fill  { height: 100%; border-radius: 100px; width: 0%; transition: width 1s cubic-bezier(0.34,1.56,0.64,1); background: var(--blue); }
+    .prog-fill.done   { background: var(--green); }
+    .prog-fill.urgent { background: var(--red); }
+
+    /* Chips */
+    .chip {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-size: 0.74rem; padding: 0.2rem 0.55rem; border-radius: 6px; font-weight: 500;
+    }
+    .chip.ok     { background: #F0FDF4; color: #15803D; }
+    .chip.warn   { background: #FFFBEB; color: #92400E; }
+    .chip.over   { background: #FEF2F2; color: #DC2626; }
+    .chip.done   { background: #F0FDF4; color: #15803D; }
+
+    /* Buttons */
+    .btn-read {
+      background: var(--navy); color: #fff; border: none;
+      border-radius: 7px; padding: 0.38rem 0.85rem;
+      font-family: var(--font-body); font-size: 0.78rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 0.3rem;
+    }
+    .btn-read:hover { background: var(--blue); transform: scale(1.03); }
+    .btn-del {
+      background: none; border: none; color: var(--slate);
+      cursor: pointer; padding: 0.25rem 0.4rem; border-radius: 6px;
+      transition: all 0.2s; font-size: 0.88rem;
+    }
+    .btn-del:hover { color: var(--red); background: #FEF2F2; }
+
+    /* ── NOTES PANEL ────────────────────────────────────────────── */
+    .notes-panel {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    .note-entry {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.875rem 1rem;
+      margin-bottom: 0.625rem;
+      transition: box-shadow 0.18s;
+    }
+    .note-entry:hover { box-shadow: 0 4px 16px rgba(15,23,42,0.06); }
+    .note-entry:last-child { margin-bottom: 0; }
+    .note-meta { font-size: 0.72rem; color: var(--slate); margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.5rem; }
+    .note-badge {
+      display: inline-flex; align-items: center; gap: 0.2rem;
+      background: var(--blue-lt); color: var(--blue);
+      border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.62rem; font-weight: 700;
+    }
+    .note-badge.voice { background: #F0FDF4; color: #15803D; }
+    .note-text { font-size: 0.875rem; color: var(--navy-2); line-height: 1.6; }
+    [data-theme="dark"] .note-text { color: #CBD5E1; }
+
+    /* Voice note recorder */
+    .voice-recorder {
+      background: var(--blue-lt); border: 1px solid #BFDBFE;
+      border-radius: 12px; padding: 1.1rem 1.25rem;
+      display: none; /* shown via JS */
+      margin-top: 0.75rem;
+    }
+    .voice-recorder.active { display: block; }
+    .rec-status { font-size: 0.8rem; font-weight: 600; color: var(--blue); display: flex; align-items: center; gap: 0.5rem; }
+    .rec-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .rec-transcript { font-size: 0.82rem; color: var(--navy-2); margin-top: 0.6rem; line-height: 1.55; min-height: 40px; font-style: italic; }
+    [data-theme="dark"] .rec-transcript { color: #CBD5E1; }
+
+    /* ── FAB ────────────────────────────────────────────────────── */
+    .fab {
+      position: fixed; bottom: 2rem; right: 2rem;
+      width: 56px; height: 56px; border-radius: 50%;
+      background: var(--blue); color: #fff; border: none;
+      font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 20px rgba(37,99,235,0.4); cursor: pointer;
+      transition: all 0.2s; z-index: 50;
+    }
+    .fab:hover { background: var(--blue-2); transform: scale(1.1); box-shadow: 0 10px 32px rgba(37,99,235,0.5); }
+
+    /* ── MODALS ─────────────────────────────────────────────────── */
+    .modal-content { border-radius: 18px !important; border: none !important; font-family: var(--font-body); }
+    [data-theme="dark"] .modal-content { background: #1E293B !important; color: #E2E8F0; }
+    .modal-header { border-bottom: 1px solid var(--border) !important; }
+    .modal-footer { border-top:   1px solid var(--border) !important; }
+    .modal-title  { font-family: var(--font-head) !important; font-weight: 700 !important; font-size: 1rem !important; }
+    .form-label   { font-size: 0.82rem; font-weight: 600; color: var(--navy-2); }
+    [data-theme="dark"] .form-label { color: #CBD5E1; }
+    .form-control {
+      border-radius: 9px !important; border: 1.5px solid var(--border) !important;
+      font-family: var(--font-body) !important; font-size: 0.9rem !important;
+    }
+    .form-control:focus { border-color: var(--blue) !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.1) !important; }
+    [data-theme="dark"] .form-control { background: #0B1120 !important; color: #E2E8F0 !important; border-color: rgba(255,255,255,0.1) !important; }
+
+    .btn-rs {
+      background: var(--blue); color: #fff; border: none;
+      border-radius: 9px; padding: 0.6rem 1.4rem;
+      font-family: var(--font-body); font-weight: 600; font-size: 0.875rem;
+      transition: all 0.2s; cursor: pointer;
+    }
+    .btn-rs:hover { background: var(--blue-2); color: #fff; }
+    .btn-rs-ghost {
+      background: var(--bg); color: var(--slate); border: 1px solid var(--border);
+      border-radius: 9px; padding: 0.6rem 1.2rem;
+      font-family: var(--font-body); font-weight: 500; font-size: 0.875rem;
+      transition: all 0.2s; cursor: pointer;
+    }
+    .btn-rs-ghost:hover { color: var(--navy); }
+
+    /* Completion modal */
+    #completionModal .modal-content { background: var(--navy) !important; color: #fff; text-align: center; }
+    #completionModal .modal-body { padding: 2.5rem; }
+
+    /* ── TOAST ──────────────────────────────────────────────────── */
+    .rs-toast {
+      position: fixed; bottom: 2rem; left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: var(--navy); color: #fff;
+      padding: 0.65rem 1.4rem; border-radius: 100px;
+      font-size: 0.875rem; font-weight: 500;
+      box-shadow: 0 8px 30px rgba(15,23,42,0.2); z-index: 9999;
+      transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); white-space: nowrap;
+    }
+    .rs-toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ── SECTION LABEL ──────────────────────────────────────────── */
+    .sec-lbl { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--blue); margin-bottom: 0.6rem; }
+
+    /* ── SCHEDULE PANEL ─────────────────────────────────────────── */
+    #schedulePanel {
+      display: none; /* shown by JS when tasks exist */
+      background: var(--navy);
+      border-radius: 16px; padding: 0; overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    .sch-panel-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .sch-panel-title {
+      font-family: var(--font-head); font-weight: 700; font-size: 0.95rem; color: #fff;
+    }
+    .sch-panel-sub { font-size: 0.76rem; color: rgba(255,255,255,0.38); margin-top: 0.15rem; }
+    .sch-panel-badge {
+      background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.25);
+      color: var(--amber); border-radius: 7px;
+      padding: 0.28rem 0.7rem; font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+    }
+    .sch-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 0.875rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+    .sch-row:hover { background: rgba(255,255,255,0.03); }
+    .sch-row-name { font-family: var(--font-head); font-weight: 700; font-size: 0.875rem; color: #fff; }
+    .sch-row-meta { font-size: 0.72rem; color: rgba(255,255,255,0.32); margin-top: 0.15rem; }
+    .sch-row-right { text-align: right; flex-shrink: 0; margin-left: 1rem; }
+    .sch-row-num  { font-family: var(--font-head); font-size: 1.3rem; font-weight: 800; color: var(--blue); display: block; line-height: 1; }
+    .sch-row-unit { font-size: 0.62rem; color: rgba(255,255,255,0.32); text-transform: uppercase; letter-spacing: 0.06em; }
+    .sch-total-row {
+      padding: 1rem 1.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(245,158,11,0.06); border-top: 1px solid rgba(245,158,11,0.12);
+    }
+
+
+    /* ── SUMMARY / REVIEW / TIMER ADDITIONS ─────────────────────── */
+    .tab-sm {
+      flex: 1; padding: 0.45rem; border: none; border-radius: 7px;
+      font-family: var(--font-body); font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; background: transparent; color: var(--slate);
+      transition: all 0.2s;
+    }
+    .tab-sm.active { background: var(--white); color: var(--navy); box-shadow: 0 1px 4px rgba(15,23,42,0.1); }
+    .btn-timer-sm {
+      background: var(--bg) !important; color: var(--slate) !important;
+      border: 1px solid var(--border) !important;
+      padding: 0.38rem 0.65rem !important;
+    }
+    .btn-timer-sm:hover { background: var(--blue-lt) !important; color: var(--blue) !important; border-color: var(--blue) !important; }
+    /* Timer footer state switching */
+    #timerModalFooter { display:flex; width:100%; justify-content:flex-end; gap:0.5rem; }
+    .timer-preset {
+      background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px;
+      padding: 0.4rem 0.75rem; font-family: var(--font-body); font-size: 0.78rem;
+      font-weight: 600; color: var(--slate); cursor: pointer; transition: all 0.15s;
+    }
+    .timer-preset:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+    .timer-preset.active { border-color: var(--blue); background: var(--blue); color: #fff; }
+    #timerModalFooter > div { display:flex; gap:0.5rem; width:100%; justify-content:flex-end; }
+    /* Toast allows HTML */
+    .rs-toast { max-width: 360px; text-align: center; }
+
+    @media (max-width: 576px) {
+      .dash-wrap { padding: 1rem 1rem 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="app-nav">
+    <div class="nav-inner">
+      <div class="app-brand"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:-4px;flex-shrink:0;"><rect x="2" y="4" width="12" height="15" rx="1.5" fill="#2563EB" opacity="0.85"/><rect x="4" y="4" width="12" height="15" rx="1.5" fill="#2563EB"/><rect x="4" y="4" width="12" height="15" rx="1.5" fill="white" opacity="0.12"/><line x1="7" y1="9" x2="13" y2="9" stroke="white" stroke-width="1.4" stroke-linecap="round"/><line x1="7" y1="12" x2="11" y2="12" stroke="white" stroke-width="1.4" stroke-linecap="round"/><circle cx="17" cy="6" r="4" fill="#10B981"/><path d="M17 8.5V3.5M17 3.5L15 5.5M17 3.5L19 5.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg> ReadSmartly</div>
+      <div class="nav-right">
+        <button class="nav-chip" onclick="toggleNotifPanel()" id="notifBellBtn" title="Notifications" style="position:relative;display:flex;align-items:center;gap:0.35rem;">
+          <i class="bi bi-bell"></i>
+          <span class="d-none d-sm-inline">Alerts</span>
+          <span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#EF4444;border-radius:50%;font-size:0.55rem;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;line-height:1;" class="notif-badge">0</span>
+        </button>
+        <button class="nav-chip" onclick="openStandaloneTimer()" title="Start a reading timer" style="display:flex;align-items:center;gap:0.35rem;"><i class="bi bi-stopwatch"></i> <span class="d-none d-sm-inline">Timer</span></button>
+        <button class="nav-chip" onclick="openPomodoroSetup()" title="Pomodoro mode" style="display:flex;align-items:center;gap:0.35rem;"><i class="bi bi-circle-half"></i> <span class="d-none d-md-inline">Pomodoro</span></button>
+        <button class="nav-chip" onclick="openWeeklyReview()" title="Weekly review" style="display:flex;align-items:center;gap:0.35rem;"><i class="bi bi-bar-chart-line"></i> <span class="d-none d-md-inline">Review</span></button>
+        <button class="nav-chip" onclick="openSessionHistory()" title="Session history" style="display:flex;align-items:center;gap:0.35rem;"><i class="bi bi-clock-history"></i></button>
+        <button class="nav-chip" id="darkToggle">🌙</button>
+        <button class="nav-chip" id="profileNavBtn" style="font-weight:600;">Profile</button>
+        <button class="nav-chip" onclick="logout()"><i class="bi bi-box-arrow-right me-1"></i>Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="dash-wrap">
+
+    <!-- GREETING -->
+    <div class="greeting-row">
+      <div class="greeting-h" id="greeting">Good morning, <span>reader</span> 👋</div>
+      <div class="greeting-sub">Here's your reading snapshot for today</div>
+    </div>
+
+    <!-- QUOTE -->
+    <div class="quote-bar">
+      <div class="quote-text" id="quoteText"></div>
+      <div class="quote-auth" id="quoteAuthor"></div>
+    </div>
+
+    <!-- STREAK + CALENDAR -->
+    <div class="streak-card mb-4">
+      <div class="streak-top">
+        <div>
+          <div class="streak-lbl">Current Streak</div>
+          <div>
+            <span class="streak-num" id="streakCount">0</span>
+            <span class="streak-unit">days</span>
+          </div>
+          <div style="font-size:0.75rem;color:rgba(255,255,255,0.3);margin-top:0.2rem;">consecutive reading days</div>
+        </div>
+        <div class="streak-badge" id="streakBadge">Just starting</div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.1rem;margin-bottom:0.5rem;">
+        <div style="font-size:0.6rem;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:0.1em;">Last 7 Days</div>
+        <button onclick="openMonthCalendar()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border-radius:5px;padding:0.15rem 0.55rem;font-size:0.65rem;cursor:pointer;font-family:var(--font-body);transition:all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.08)'">
+          <i class="bi bi-calendar3 me-1"></i>Full month
+        </button>
+      </div>
+      <div class="cal-row" id="calendar"></div>
+    </div>
+
+    <!-- CARRY-OVER ALERT (shown by JS when behind) -->
+    <div id="carryOverCard" style="display:none;"></div>
+
+    <!-- AI INSIGHTS -->
+    <div id="aiInsights" class="mb-3"></div>
+    <div id="aiPrediction" class="mb-4"></div>
+
+    <!-- SCHEDULE PANEL -->
+    <div class="sec-lbl" id="schedLbl" style="display:none;">Today's Study Plan</div>
+    <div id="schedulePanel" class="mb-4"></div>
+
+    <!-- STATS -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.6rem;">
+      <div class="sec-lbl" style="margin-bottom:0;">Your Stats</div>
+      <button onclick="exportReportPDF()" style="background:none;border:1px solid var(--border);color:var(--slate);border-radius:6px;padding:0.2rem 0.65rem;font-size:0.72rem;cursor:pointer;font-family:var(--font-body);display:flex;align-items:center;gap:0.3rem;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--slate)'">
+        <i class="bi bi-file-earmark-pdf"></i> Export PDF
+      </button>
+    </div>
+    <div class="row g-3 mb-4">
+      <div class="col-4">
+        <div class="stat-card">
+          <div class="stat-icon">📖</div>
+          <div class="stat-val" id="totalPages">0</div>
+          <div class="stat-name">Pages</div>
+          <div class="stat-hint">total pages read</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="stat-card">
+          <div class="stat-icon">⚡</div>
+          <div class="stat-val" id="totalSessions">0</div>
+          <div class="stat-name">Sessions</div>
+          <div class="stat-hint">logged sessions</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="stat-card">
+          <div class="stat-icon">🧠</div>
+          <div class="stat-val" id="readingSpeed">0</div>
+          <div class="stat-name">Pg / Hr</div>
+          <div class="stat-hint" id="speedInsight">Log sessions</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHART -->
+    <div class="chart-card mb-4">
+      <div class="card-heading"><i class="bi bi-graph-up me-2 text-primary"></i>Pages Read: Last 14 Days</div>
+      <canvas id="pagesChart" height="110"></canvas>
+    </div>
+
+    <!-- TASKS -->
+    <div class="sec-lbl">Reading Tasks</div>
+    <div class="tasks-panel mb-4">
+      <div class="panel-header">
+        <div class="panel-title"><i class="bi bi-list-task me-2 text-primary"></i>My Tasks</div>
+        <span class="panel-count" id="tasksCount">0 tasks</span>
+      </div>
+      <div class="panel-body" id="taskList">
+        <div class="empty-state">
+          <span class="empty-icon">📭</span>
+          <div class="empty-title">No tasks yet</div>
+          <div class="empty-sub">Tap the + button below to add your first reading task</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="sec-lbl">Study Notes</div>
+    <div class="notes-panel mb-4">
+      <div class="panel-header">
+        <div class="panel-title"><i class="bi bi-journal-text me-2 text-primary"></i>Session Notes</div>
+        <button class="btn-read" onclick="openSummaryModal(null,null)" style="background:var(--blue);font-size:0.78rem;">
+          <i class="bi bi-plus me-1"></i>Add Note
+        </button>
+      </div>
+      <div class="panel-body" id="notesList">
+          <div class="empty-state">
+            <span class="empty-icon">🗒️</span>
+            <div class="empty-title">No notes yet</div>
+            <div class="empty-sub">Notes are saved when you log a session or complete a task</div>
+          </div>
+      </div>
+    </div>
+
+  </div><!-- /dash-wrap -->
+
+  <!-- FAB -->
+  <button class="fab" data-bs-toggle="modal" data-bs-target="#addTaskModal" title="Add task">+</button>
+
+  <!-- ADD TASK MODAL -->
+  <div class="modal fade" id="addTaskModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">📚 Add Reading Task</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Task Title</label>
+            <input type="text" class="form-control" id="taskTitle" placeholder="e.g., Chapter 3: Research Methods">
+          </div>
+          <div class="row g-2">
+            <div class="col">
+              <label class="form-label">Pages</label>
+              <input type="number" class="form-control" id="taskPages" placeholder="e.g., 45" min="1">
+            </div>
+            <div class="col">
+              <label class="form-label">Deadline</label>
+              <input type="date" class="form-control" id="taskDeadline">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-rs-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn-rs" onclick="addTask()">Add Task →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SESSION MODAL -->
+  <div class="modal fade" id="sessionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">📝 Log Session</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:0.875rem;color:var(--slate);margin-bottom:1.25rem;">
+            Logging for <strong id="currentTaskTitle" style="color:var(--navy)"></strong>
+          </p>
+          <div class="mb-3">
+            <label class="form-label">Pages Read</label>
+            <input type="number" class="form-control form-control-lg" id="pagesRead" placeholder="How many pages?" min="1">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Duration <span style="font-weight:400;color:var(--slate)">(minutes, optional)</span></label>
+            <input type="number" class="form-control" id="sessionDuration" placeholder="e.g., 30">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-rs-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn-rs" onclick="logSession()">Save Session ✓</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- COMPLETION MODAL -->
+  <div class="modal fade" id="completionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body" style="text-align:center;">
+          <div style="font-size:3.5rem;margin-bottom:1rem;">🎉</div>
+          <h4 style="font-family:var(--font-head);font-weight:800;color:#fff;margin-bottom:0.5rem;">Task Complete!</h4>
+          <p style="color:rgba(255,255,255,0.55);font-size:0.9rem;margin-bottom:1.5rem;" id="completionMsg">Outstanding work. Keep the streak going!</p>
+          <div style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;">
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:0.4rem;">Save a summary while it is fresh</div>
+            <p style="font-size:0.8rem;color:rgba(255,255,255,0.55);margin-bottom:0.85rem;">Write or record what you learned. Your AI will use it to ask review questions next time.</p>
+            <button class="btn-rs" onclick="openSummaryAfterCompletion()" style="background:var(--amber);color:#000;font-weight:700;padding:0.6rem 1.4rem;">
+              <i class="bi bi-journal-text me-1"></i>Save Summary
+            </button>
+          </div>
+          <button class="btn-rs-ghost" style="color:rgba(255,255,255,0.5);border-color:rgba(255,255,255,0.12);" data-bs-dismiss="modal">Skip for now</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- PROFILE MODAL -->
+  <div class="modal fade" id="profileModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">👤 My Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Your Name</label>
+            <input type="text" class="form-control" id="profileUserName" placeholder="Your name">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">AI Assistant Name</label>
+            <input type="text" class="form-control" id="profileAiName" placeholder="e.g., Nova, Sage…">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Reading Speed <span style="font-weight:400;color:var(--slate)">(words per minute)</span></label>
+            <input type="number" class="form-control" id="profileSpeed" placeholder="e.g., 200" min="60" max="700">
+            <div style="font-size:0.78rem;color:var(--slate);margin-top:0.3rem;">Average is 200 WPM. Retake the reading test in Setup to update this.</div>
+          </div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:0.875rem 1rem;">
+            <div style="font-size:0.82rem;font-weight:600;color:var(--navy);margin-bottom:0.35rem;">Want to redo your full setup?</div>
+            <div style="font-size:0.78rem;color:var(--slate);margin-bottom:0.75rem;">This will take you back through the course and speed calibration wizard.</div>
+            <button class="btn-rs-ghost" onclick="goToSetup()" style="font-size:0.82rem;padding:0.45rem 1rem;">
+              <i class="bi bi-arrow-repeat me-1"></i> Redo setup
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-rs-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn-rs" onclick="saveProfile()">Save changes →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SUMMARY MODAL -->
+  <div class="modal fade" id="summaryModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">📝 Save Session Note</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div style="font-size:0.8rem;color:var(--slate);margin-bottom:1rem;">
+            For task: <strong id="summaryTaskName" style="color:var(--navy);"></strong>
+          </div>
+          <!-- Tab switcher -->
+          <div style="display:flex;gap:3px;padding:3px;background:var(--bg);border-radius:10px;margin-bottom:1.25rem;">
+            <button id="summaryTextTab" class="tab-sm active" onclick="switchSummaryTab('text')"><i class="bi bi-pencil me-1"></i>Text</button>
+            <button id="summaryVoiceTab" class="tab-sm" onclick="switchSummaryTab('voice')"><i class="bi bi-mic me-1"></i>Voice</button>
+          </div>
+          <!-- Text panel -->
+          <div id="summaryTextPanel">
+            <textarea class="form-control" id="summaryTextContent" rows="5" placeholder="Write what you covered, key ideas, questions that came up…"></textarea>
+          </div>
+          <!-- Voice panel -->
+          <div id="summaryVoicePanel" style="display:none;">
+            <div style="background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:12px;padding:1rem 1.1rem;">
+              <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">
+                <span id="summaryRecDot" style="display:none;width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1s infinite;flex-shrink:0;"></span>
+                <button class="btn-rs" id="summaryVoiceBtn" onclick="startSummaryVoice()" style="font-size:0.8rem;padding:0.45rem 1rem;">
+                  <i class="bi bi-mic-fill me-1"></i>Start Recording
+                </button>
+              </div>
+              <div id="summaryRecTranscript" style="font-size:0.82rem;color:var(--navy-2);line-height:1.55;min-height:60px;font-style:italic;">Start speaking and your words will appear here</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-rs-ghost" data-bs-dismiss="modal">Cancel</button>
+          <button class="btn-rs" onclick="saveSummary()"><i class="bi bi-check me-1"></i>Save Note</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEW MODAL -->
+  <div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">🧠 Before You Continue</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="reviewModalBody">
+        </div>
+        <div class="modal-footer">
+          <button class="btn-rs-ghost" data-bs-dismiss="modal">Skip review</button>
+          <button class="btn-rs" id="reviewContinueBtn">Continue to session →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMER MODAL -->
+  <div class="modal fade" id="timerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-stopwatch me-2"></i>Reading Timer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div style="font-size:0.8rem;color:var(--slate);margin-bottom:1.25rem;">
+            Task: <strong id="timerTaskName" style="color:var(--navy);"></strong>
+          </div>
+
+          <!-- SETUP STATE -->
+          <div id="timerSetup">
+            <div style="text-align:center;margin-bottom:1rem;">
+              <div style="font-family:var(--font-head);font-size:3.2rem;font-weight:800;color:var(--navy);cursor:text;position:relative;" id="timerPreviewDisplay" onclick="focusCustomInput()" title="Click to type a custom time">25:00</div>
+              <div style="font-size:0.7rem;color:var(--slate);margin-top:0.25rem;">or type any time below</div>
+            </div>
+            <!-- Custom manual input -->
+            <div style="display:flex;align-items:center;gap:0.5rem;justify-content:center;margin-bottom:1.1rem;">
+              <input type="number" id="timerCustomMins" placeholder="min" min="1" max="240"
+                style="width:80px;text-align:center;border:1.5px solid var(--border);border-radius:8px;padding:0.5rem;font-size:1rem;font-weight:600;font-family:var(--font-body);outline:none;transition:border-color 0.2s;"
+                oninput="onCustomTimerInput()" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+              <span style="font-size:0.85rem;color:var(--slate);">min</span>
+              <input type="number" id="timerCustomSecs" placeholder="sec" min="0" max="59"
+                style="width:75px;text-align:center;border:1.5px solid var(--border);border-radius:8px;padding:0.5rem;font-size:1rem;font-weight:600;font-family:var(--font-body);outline:none;transition:border-color 0.2s;"
+                oninput="onCustomTimerInput()" onfocus="this.style.borderColor='var(--blue)'" onblur="this.style.borderColor='var(--border)'">
+              <span style="font-size:0.85rem;color:var(--slate);">sec</span>
+            </div>
+            <!-- Quick presets -->
+            <div style="font-size:0.7rem;color:var(--slate);text-transform:uppercase;letter-spacing:0.07em;text-align:center;margin-bottom:0.6rem;">Quick presets</div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.4rem;justify-content:center;margin-bottom:1.1rem;">
+              <button class="timer-preset" onclick="setTimerPreset(10)">10 min</button>
+              <button class="timer-preset" onclick="setTimerPreset(15)">15 min</button>
+              <button class="timer-preset" onclick="setTimerPreset(20)">20 min</button>
+              <button class="timer-preset active" onclick="setTimerPreset(25)">25 min</button>
+              <button class="timer-preset" onclick="setTimerPreset(30)">30 min</button>
+              <button class="timer-preset" onclick="setTimerPreset(45)">45 min</button>
+              <button class="timer-preset" onclick="setTimerPreset(60)">60 min</button>
+              <button class="timer-preset" onclick="setTimerPreset(90)">90 min</button>
+            </div>
+            <!-- Hidden input for backward compat -->
+            <input type="hidden" id="timerDuration" value="25">
+            <div style="background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:10px;padding:0.75rem 1rem;font-size:0.8rem;color:var(--navy-2);line-height:1.6;">
+              <i class="bi bi-bell me-1" style="color:var(--blue);"></i>
+              The timer keeps running even if you switch tabs. Your AI will check in during the session.
+            </div>
+          </div>
+
+          <!-- RUNNING STATE -->
+          <div id="timerRunning" style="display:none;">
+            <div style="text-align:center;padding:1rem 0;">
+              <!-- SVG ring timer -->
+              <svg width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg);">
+                <circle cx="70" cy="70" r="54" fill="none" stroke="#E2E8F0" stroke-width="10"/>
+                <circle id="timerRing" cx="70" cy="70" r="54" fill="none" stroke="#2563EB" stroke-width="10"
+                  stroke-linecap="round" style="transition:stroke-dashoffset 1s linear;"/>
+              </svg>
+              <div style="margin-top:-88px;font-family:var(--font-head);font-size:2rem;font-weight:800;color:var(--navy);line-height:1;" id="timerCountdown">25:00</div>
+              <div style="margin-top:68px;font-size:0.75rem;color:var(--slate);text-transform:uppercase;letter-spacing:0.07em;">remaining</div>
+            </div>
+            <div id="timerEncouragement" style="text-align:center;font-size:0.875rem;color:var(--slate);font-style:italic;min-height:1.4em;margin:0.75rem 0 1rem;padding:0 1rem;"></div>
+          </div>
+
+          <!-- DONE STATE -->
+          <div id="timerDone" style="display:none;text-align:center;padding:1rem 0;">
+            <div style="font-size:3rem;margin-bottom:0.75rem;">✅</div>
+            <div style="font-family:var(--font-head);font-size:1.3rem;font-weight:800;color:var(--navy);margin-bottom:0.4rem;">Session Complete!</div>
+            <p style="font-size:0.875rem;color:var(--slate);margin-bottom:1.25rem;">Great focus. Log your pages and save a note while it is fresh.</p>
+          </div>
+        </div>
+        <div class="modal-footer" id="timerModalFooter">
+          <!-- Footer buttons change based on state (setup / running / done) -->
+          <div id="timerSetupFooter">
+            <button class="btn-rs-ghost" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn-rs" onclick="startTimer()"><i class="bi bi-play-fill me-1"></i>Start Timer</button>
+          </div>
+          <div id="timerRunningFooter" style="display:none;">
+            <button class="btn-rs-ghost" onclick="cancelTimer()">Cancel Session</button>
+            <button class="btn-rs" id="timerPauseBtn" onclick="pauseTimer()"><i class="bi bi-pause-fill me-1"></i>Pause</button>
+          </div>
+          <div id="timerDoneFooter" style="display:none;">
+            <button class="btn-rs-ghost" onclick="openSummaryAfterCompletion()"><i class="bi bi-journal-text me-1"></i>Save Note</button>
+            <button class="btn-rs" onclick="timerLogSession()"><i class="bi bi-check me-1"></i>Log Session</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACKGROUND TIMER BAR (shown when timer runs behind the modal) -->
+  <div id="bgTimerBar" style="
+    display:none; position:fixed; bottom:1rem; left:50%; transform:translateX(-50%);
+    background:var(--navy); color:#fff; border-radius:100px;
+    padding:0.5rem 1.25rem; font-size:0.82rem; font-weight:600;
+    box-shadow:0 8px 28px rgba(15,23,42,0.28); z-index:998;
+    display:none; align-items:center; gap:0.75rem; cursor:pointer;
+    font-family:var(--font-body);
+  " onclick="reopenTimerModal()">
+    <i class="bi bi-stopwatch" style="color:var(--amber);"></i>
+    <span id="bgTimerText">25:00 remaining</span>
+    <span style="background:rgba(255,255,255,0.12);border-radius:6px;padding:0.15rem 0.5rem;font-size:0.7rem;">tap to view</span>
+  </div>
+
+  <!-- TOAST -->
+  <div class="rs-toast" id="rsToast"></div>
+
+
+  <!-- ══ POMODORO MODAL ══════════════════════════════════════════════════ -->
+  <div class="modal fade" id="pomodoroModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">🍅 Pomodoro Timer</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+
+          <!-- SETUP -->
+          <div id="pomSetup">
+            <p style="font-size:0.85rem;color:var(--slate);margin-bottom:1.25rem;">Work in focused sprints with short breaks between. Customise your cycle below.</p>
+            <div class="row g-3 mb-3">
+              <div class="col-4">
+                <label class="form-label">Work (min)</label>
+                <input type="number" class="form-control" id="pomWorkMins" value="25" min="5" max="120">
+              </div>
+              <div class="col-4">
+                <label class="form-label">Break (min)</label>
+                <input type="number" class="form-control" id="pomBreakMins" value="5" min="1" max="30">
+              </div>
+              <div class="col-4">
+                <label class="form-label">Cycles</label>
+                <input type="number" class="form-control" id="pomCycles" value="4" min="1" max="8">
+              </div>
+            </div>
+            <div style="background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:10px;padding:0.75rem 1rem;font-size:0.8rem;color:var(--navy-2);">
+              <i class="bi bi-info-circle me-1" style="color:var(--blue);"></i>
+              After all cycles, you get a long break (3× normal break). Your AI sends check-ins between cycles.
+            </div>
+          </div>
+
+          <!-- RUNNING -->
+          <div id="pomRunning" style="display:none;">
+            <div style="text-align:center;margin-bottom:0.75rem;">
+              <span id="pomCycleLabel" style="font-family:var(--font-head);font-size:1rem;font-weight:700;color:var(--navy);"></span>
+              <span id="pomCycleBadge" style="margin-left:0.5rem;color:#fff;border-radius:6px;padding:0.15rem 0.55rem;font-size:0.72rem;font-weight:700;"></span>
+            </div>
+            <div style="text-align:center;margin-bottom:0.75rem;">
+              <svg width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg);">
+                <circle cx="70" cy="70" r="54" fill="none" stroke="#E2E8F0" stroke-width="10"/>
+                <circle id="pomRing" cx="70" cy="70" r="54" fill="none" stroke="#2563EB" stroke-width="10" stroke-linecap="round" style="transition:stroke-dashoffset 1s linear;"/>
+              </svg>
+              <div style="margin-top:-88px;font-family:var(--font-head);font-size:2.2rem;font-weight:800;color:var(--navy);" id="pomCountdown">25:00</div>
+              <div style="margin-top:68px;font-size:0.72rem;color:var(--slate);">remaining</div>
+            </div>
+            <!-- Cycle dots -->
+            <div id="pomDots" style="display:flex;gap:0.4rem;justify-content:center;margin-bottom:0.75rem;"></div>
+          </div>
+
+          <!-- DONE -->
+          <div id="pomDone" style="display:none;text-align:center;padding:1rem 0;">
+            <div style="font-size:3rem;margin-bottom:0.75rem;">🍅</div>
+            <div style="font-family:var(--font-head);font-size:1.3rem;font-weight:800;color:var(--navy);margin-bottom:0.4rem;">Pomodoro Complete!</div>
+            <p style="font-size:0.875rem;color:var(--slate);">All work sessions done. Excellent focus session!</p>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <div id="pomSetupFooter">
+            <button class="btn-rs-ghost" data-bs-dismiss="modal">Cancel</button>
+            <button class="btn-rs" onclick="startPomodoro()"><i class="bi bi-play-fill me-1"></i>Start Pomodoro</button>
+          </div>
+          <div id="pomRunningFooter" style="display:none;">
+            <button class="btn-rs-ghost" onclick="cancelPomodoro()">Stop</button>
+            <button class="btn-rs" onclick="skipPomCycle()" style="background:var(--slate);">Skip cycle →</button>
+          </div>
+          <div id="pomDoneFooter" style="display:none;">
+            <button class="btn-rs-ghost" data-bs-dismiss="modal">Close</button>
+            <button class="btn-rs" onclick="timerLogSession()"><i class="bi bi-check me-1"></i>Log Session</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Switch pomodoro footer panels
+    document.addEventListener('DOMContentLoaded', () => {
+      const pomModal = document.getElementById('pomodoroModal');
+      if (!pomModal) return;
+      const showPomFooter = (state) => {
+        ['Setup','Running','Done'].forEach(s => {
+          const el = document.getElementById('pom'+s+'Footer');
+          if (el) el.style.display = 'none';
+        });
+        const el = document.getElementById('pom'+state+'Footer');
+        if (el) el.style.display = 'flex';
+      };
+      // Expose for app.js to call
+      window._showPomFooter = showPomFooter;
+    });
+  </script>
+
+  <!-- ══ WEEKLY REVIEW MODAL ════════════════════════════════════════════════ -->
+  <div class="modal fade" id="weeklyReviewModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-bar-chart-line me-2"></i>Weekly Review</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="weeklyReviewBody" style="max-height:70vh;overflow-y:auto;">
+        </div>
+        <div class="modal-footer">
+          <button class="btn-rs-ghost" data-bs-dismiss="modal">Close</button>
+          <button class="btn-rs" onclick="exportReportPDF()"><i class="bi bi-file-earmark-pdf me-1"></i>Export PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MONTHLY CALENDAR MODAL ════════════════════════════════════════════ -->
+  <div class="modal fade" id="monthCalModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-calendar3 me-2"></i>Reading Calendar</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="monthCalBody">
+        </div>
+        <div class="modal-footer">
+          <button class="btn-rs-ghost" data-bs-dismiss="modal">Close</button>
+          <button class="btn-rs" onclick="openWeeklyReview();bootstrap.Modal.getInstance(document.getElementById('monthCalModal'))?.hide()">View Weekly Report</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SESSION HISTORY MODAL ════════════════════════════════════════════ -->
+  <div class="modal fade" id="historyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-clock-history me-2"></i>Session History</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="historyBody" style="max-height:75vh;overflow-y:auto;">
+        </div>
+        <div class="modal-footer">
+          <button class="btn-rs-ghost" data-bs-dismiss="modal">Close</button>
+          <button class="btn-rs" onclick="exportReportPDF()"><i class="bi bi-file-earmark-pdf me-1"></i>Export as PDF</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="app.js"></script>
+  <script>
+    // ── DARK MODE ───────────────────────────────────────────────
+    const darkBtn = document.getElementById('darkToggle');
+    const saved   = localStorage.getItem('rsTheme') || 'light';
+    if (saved === 'dark') { document.documentElement.setAttribute('data-theme','dark'); darkBtn.textContent='☀️'; }
+    darkBtn.addEventListener('click', () => {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) { document.documentElement.removeAttribute('data-theme'); localStorage.setItem('rsTheme','light'); darkBtn.textContent='🌙'; }
+      else        { document.documentElement.setAttribute('data-theme','dark'); localStorage.setItem('rsTheme','dark'); darkBtn.textContent='☀️'; }
+    });
+
+    // ── GREETING ────────────────────────────────────────────────
+    const hr = new Date().getHours();
+    document.getElementById('greeting').innerHTML =
+      (hr<12?'Good morning':hr<17?'Good afternoon':'Good evening') + ', <span>reader</span> 👋';
+
+    // ── DAILY QUOTE ─────────────────────────────────────────────
+    const quotes = [
+      {t:"A reader lives a thousand lives before he dies. The man who never reads lives only one.", a:"— George R.R. Martin"},
+      {t:"Not all readers are leaders, but all leaders are readers.", a:"— Harry S. Truman"},
+      {t:"The more that you read, the more things you will know.", a:"— Dr. Seuss"},
+      {t:"Today a reader, tomorrow a leader.", a:"— Margaret Fuller"},
+      {t:"Reading is to the mind what exercise is to the body.", a:"— Joseph Addison"},
+      {t:"Books are a uniquely portable magic.", a:"— Stephen King"},
+      {t:"A book is a dream you hold in your hands.", a:"— Neil Gaiman"},
+      {t:"That's the thing about books. They let you travel without moving your feet.", a:"— Jhumpa Lahiri"},
+    ];
+    const q = quotes[new Date().getDate() % quotes.length];
+    document.getElementById('quoteText').textContent   = `"${q.t}"`;
+    document.getElementById('quoteAuthor').textContent = q.a;
+
+    // Expose toast globally for app.js (HTML version)
+    window.showToast = function(msg, html) {
+      const t = document.getElementById('rsToast');
+      if (!t) return;
+      if (html) t.innerHTML = msg; else t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => { t.classList.remove('show'); t.textContent=''; }, 6000);
+    };
+
+    // ── TIMER FOOTER STATE WIRING ────────────────────────────────
+    // Keep footer panels in sync with timer state changes
+    window._timerShowFooter = function(state) {
+      ['timerSetupFooter','timerRunningFooter','timerDoneFooter'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
+      });
+      const el = document.getElementById('timer'+state+'Footer');
+      if (el) el.style.display = 'flex';
+    };
+
+    // Patch startTimer to also update footer
+    const _origStart = window.startTimer;
+    window.startTimer = function() { _origStart?.(); window._timerShowFooter('Running'); };
+
+    // Patch cancelTimer too
+    const _origCancel = window.cancelTimer;
+    window.cancelTimer = function() { _origCancel?.(); window._timerShowFooter('Setup'); };
+
+    // Auto-switch footer when done (called from app.js onTimerComplete via event)
+    document.addEventListener('timerComplete', () => window._timerShowFooter('Done'));
+  </script>
+</body>
+</html>
