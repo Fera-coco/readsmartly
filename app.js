@@ -22,6 +22,7 @@ let completionModal  = null;
 let summaryModal     = null;
 let reviewModal      = null;
 let timerModal       = null;
+let notePromptModal  = null;
 let chartInstance    = null;
 let timerInterval    = null;
 let timerSeconds     = 0;
@@ -48,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (g('summaryModal'))    summaryModal    = new bootstrap.Modal(g('summaryModal'));
     if (g('reviewModal'))     reviewModal     = new bootstrap.Modal(g('reviewModal'));
     if (g('timerModal'))      timerModal      = new bootstrap.Modal(g('timerModal'));
+    if (g('notePromptModal')) notePromptModal = new bootstrap.Modal(g('notePromptModal'));
 });
 
 // ── AUTH STATE HANDLER ─────────────────────────────────────────────────────
@@ -65,12 +67,11 @@ onAuthStateChanged(auth, async (user) => {
         if (page.includes('index.html') || page === '/' || page === '') {
             const profile = await loadProfile(user.uid);
             if (profile?.onboardingDone) {
-                // Returning user: pre-fill email for convenience
-                const emailEl = document.getElementById('loginEmail');
-                if (emailEl && user.email) emailEl.value = user.email;
+                // Already logged in — update splash and redirect
+                const splashStatus = document.getElementById('splashStatus');
+                if (splashStatus) splashStatus.textContent = 'Signing you in…';
                 window.location.href = 'home.html';
             } else {
-                // New user or incomplete setup: must complete onboarding
                 window.location.href = 'onboarding.html';
             }
             return;
@@ -123,6 +124,11 @@ function initDashboard() {
         el.textContent = userProfile?.aiName || 'AI';
     });
 
+    // Register service worker for background push notifications
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./sw.js').catch(e => console.warn('SW registration failed:', e));
+    }
+
     // Request notification permission for timer
     if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
@@ -166,7 +172,10 @@ window.login = async function () {
 };
 
 window.logout = async function () {
-    if (confirm('Log out?')) await signOut(auth);
+    if (confirm('Log out?')) {
+        localStorage.removeItem('rs_hasVisited');
+        await signOut(auth);
+    }
 };
 
 window.showSignup = () => window.switchTab?.('signup');
@@ -273,18 +282,24 @@ window.goToSetup = function() {
 
 // ── LOAD ALL DATA ──────────────────────────────────────────────────────────
 async function loadAllData() {
+    // Fetch shared data once — avoids 6+ redundant reads per dashboard load
+    const [sessSnap, taskSnap] = await Promise.all([
+        getDocs(query(collection(db,'sessions'), where('userId','==',currentUser.uid), orderBy('date','desc'))),
+        getDocs(query(collection(db,'tasks'),    where('userId','==',currentUser.uid), orderBy('deadline','asc'))),
+    ]);
     await Promise.all([
-        loadStreak(), loadTasks(), loadStatistics(),
-        renderCalendar(), showAIInsights(), showDisengagementPrediction(),
-        renderChart(), renderSchedulePanel(),
+        loadStreak(sessSnap), loadTasks(taskSnap), loadStatistics(sessSnap),
+        renderCalendar(sessSnap), showAIInsights(sessSnap), showDisengagementPrediction(sessSnap),
+        renderChart(sessSnap), renderSchedulePanel(taskSnap), loadNotes(),
     ]);
 }
 
 // ── STREAK ─────────────────────────────────────────────────────────────────
-async function loadStreak() {
+async function loadStreak(ss) {
     try {
-        const q  = query(collection(db,'sessions'), where('userId','==',currentUser.uid), orderBy('date','desc'));
-        const ss = await getDocs(q);
+        if (!ss) {
+            ss = await getDocs(query(collection(db,'sessions'), where('userId','==',currentUser.uid), orderBy('date','desc')));
+        }
         if (ss.empty) { setStreak(0); return; }
         const seen = new Set(), dates = [];
         ss.forEach(d => { const k = d.data().date.toDate().toDateString(); if (!seen.has(k)) { seen.add(k); dates.push(k); } });
@@ -317,14 +332,15 @@ function setStreak(n) {
 }
 
 // ── CALENDAR ───────────────────────────────────────────────────────────────
-async function renderCalendar() {
+async function renderCalendar(ss) {
     const cal = document.getElementById('calendar');
     if (!cal) return;
     cal.innerHTML = '';
     const DAY = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     try {
-        const q  = query(collection(db,'sessions'), where('userId','==',currentUser.uid));
-        const ss = await getDocs(q);
+        if (!ss) {
+            ss = await getDocs(query(collection(db,'sessions'), where('userId','==',currentUser.uid)));
+        }
         const hit = new Set();
         ss.forEach(d => hit.add(d.data().date.toDate().toDateString()));
         for (let i = 6; i >= 0; i--) {
@@ -341,10 +357,11 @@ async function renderCalendar() {
 }
 
 // ── STATISTICS ─────────────────────────────────────────────────────────────
-async function loadStatistics() {
+async function loadStatistics(ss) {
     try {
-        const q  = query(collection(db,'sessions'), where('userId','==',currentUser.uid));
-        const ss = await getDocs(q);
+        if (!ss) {
+            ss = await getDocs(query(collection(db,'sessions'), where('userId','==',currentUser.uid)));
+        }
         let pages = 0, mins = 0, count = 0;
         ss.forEach(d => { pages += d.data().pagesRead||0; mins += d.data().duration||0; count++; });
         animateCounter(document.getElementById('totalPages'), pages);
@@ -364,12 +381,13 @@ async function loadStatistics() {
 }
 
 // ── CHART ──────────────────────────────────────────────────────────────────
-async function renderChart() {
+async function renderChart(ss) {
     const canvas = document.getElementById('pagesChart');
     if (!canvas) return;
     try {
-        const q  = query(collection(db,'sessions'), where('userId','==',currentUser.uid));
-        const ss = await getDocs(q);
+        if (!ss) {
+            ss = await getDocs(query(collection(db,'sessions'), where('userId','==',currentUser.uid)));
+        }
         const labels = [], buckets = {};
         for (let i = 13; i >= 0; i--) {
             const d = new Date(); d.setDate(d.getDate()-i);
@@ -389,12 +407,13 @@ async function renderChart() {
 }
 
 // ── SCHEDULE PANEL ─────────────────────────────────────────────────────────
-async function renderSchedulePanel() {
+async function renderSchedulePanel(ss) {
     const el = document.getElementById('schedulePanel');
     if (!el) return;
     try {
-        const q  = query(collection(db,'tasks'), where('userId','==',currentUser.uid), orderBy('deadline','asc'));
-        const ss = await getDocs(q);
+        if (!ss) {
+            ss = await getDocs(query(collection(db,'tasks'), where('userId','==',currentUser.uid), orderBy('deadline','asc')));
+        }
         const hide = () => { el.style.display='none'; const l=document.getElementById('schedLbl'); if(l) l.style.display='none'; };
         if (ss.empty) { hide(); return; }
         const speed=userProfile?.readingSpeed||30, aiName=userProfile?.aiName||'AI';
@@ -421,12 +440,13 @@ async function renderSchedulePanel() {
 }
 
 // ── AI INSIGHTS ────────────────────────────────────────────────────────────
-async function showAIInsights() {
+async function showAIInsights(ss) {
     const el = document.getElementById('aiInsights');
     if (!el) return;
     try {
-        const q  = query(collection(db,'sessions'), where('userId','==',currentUser.uid));
-        const ss = await getDocs(q);
+        if (!ss) {
+            ss = await getDocs(query(collection(db,'sessions'), where('userId','==',currentUser.uid)));
+        }
         const aiName = userProfile?.aiName || 'AI';
         const fmt    = h => `${h%12||12}${h>=12?'PM':'AM'}`;
         if (ss.size < 5) {
@@ -441,20 +461,22 @@ async function showAIInsights() {
     } catch(e) { console.error('AI insights error:', e); }
 }
 
-async function showDisengagementPrediction() {
+async function showDisengagementPrediction(ss) {
     const el = document.getElementById('aiPrediction');
     if (!el) return;
     const aiName = userProfile?.aiName || 'AI';
     try {
-        const q  = query(collection(db,'sessions'), where('userId','==',currentUser.uid), orderBy('date','desc'));
-        const ss = await getDocs(q);
+        if (!ss) {
+            ss = await getDocs(query(collection(db,'sessions'), where('userId','==',currentUser.uid), orderBy('date','desc')));
+        }
         if (ss.size < 7) { el.innerHTML=`<div class="ai-card blue"><span class="ai-tag blue">📊 ${aiName} · Trend Analysis</span><p>Keep logging. ${aiName} needs 1 week of sessions to detect engagement patterns.</p></div>`; return; }
         const now=new Date(), wk1=[],wk2=[],wk3=[];
         ss.forEach(d=>{ const ago=Math.floor((now-d.data().date.toDate())/86400000); if(ago<7) wk1.push(d); else if(ago<14) wk2.push(d); else if(ago<21) wk3.push(d); });
-        const avg=(wk2.length+wk3.length)/2, change=avg>0?(wk1.length-avg)/avg:0;
+        const avg=(wk2.length+wk3.length)/2, change=avg>0?(wk1.length-avg)/avg:null;
         const name=userProfile?.userName?`, ${userProfile.userName}`:'';
         let msg,color;
-        if (change<-0.4){msg=`⚠️ ${aiName} detected a ${Math.abs(Math.round(change*100))}% activity drop this week. Try two 15-minute sessions instead of one long one${name}.`;color='amber';}
+        if (change===null){msg=`Early days${name}! Keep logging sessions — ${aiName} will start spotting trends after a couple of weeks.`;color='blue';}
+        else if (change<-0.4){msg=`⚠️ ${aiName} detected a ${Math.abs(Math.round(change*100))}% activity drop this week. Try two 15-minute sessions instead of one long one${name}.`;color='amber';}
         else if(change<-0.2){msg=`📉 Slight dip this week. One session today will get you back on track${name}.`;color='amber';}
         else if(change>0.2){msg=`🚀 You're reading ${Math.round(change*100)}% more than last week${name}. Outstanding consistency!`;color='green';}
         else{msg=`Stable reading pattern${name}. ${aiName} predicts you'll maintain your streak.`;color='green';}
@@ -462,13 +484,61 @@ async function showDisengagementPrediction() {
     } catch(e) { el.innerHTML=`<div class="ai-card blue"><span class="ai-tag blue">📊 ${aiName} · Trend Analysis</span><p>Keep logging sessions to unlock AI trend analysis.</p></div>`; }
 }
 
-// ── LOAD TASKS ─────────────────────────────────────────────────────────────
-async function loadTasks() {
+// ── NOTES PANEL ────────────────────────────────────────────────────────────
+async function loadNotes() {
+    const el = document.getElementById('notesList');
+    if (!el) return;
+    try {
+        // No orderBy in query — sort client-side to avoid needing a composite index
+        const q  = query(
+            collection(db, 'summaries'),
+            where('userId', '==', currentUser.uid)
+        );
+        const ss = await getDocs(q);
+        if (ss.empty) {
+            el.innerHTML = `<div class="empty-state">
+                <span class="empty-icon">🗒️</span>
+                <div class="empty-title">No notes yet</div>
+                <div class="empty-sub">Notes are saved when you log a session or complete a task</div>
+            </div>`;
+            return;
+        }
+        // Sort newest first client-side
+        const docs = ss.docs.slice().sort((a, b) =>
+            (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0)
+        );
+        el.innerHTML = docs.map(d => {
+            const n       = d.data();
+            const date    = n.createdAt?.toDate ? n.createdAt.toDate() : new Date((n.createdAt?.seconds||0)*1000);
+            const dateStr = date.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+            const timeStr = date.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+            const isVoice = n.type === 'voice';
+            const preview = (n.content || '').slice(0, 300) + ((n.content||'').length > 300 ? '…' : '');
+            return `<div class="note-entry">
+                <div class="note-meta">
+                    <span class="note-badge ${isVoice ? 'voice' : ''}">
+                        ${isVoice ? '<i class="bi bi-mic-fill"></i> Voice' : '<i class="bi bi-pencil-fill"></i> Text'}
+                    </span>
+                    <span>${n.taskTitle || 'General Note'}</span>
+                    <span style="margin-left:auto;">${dateStr} · ${timeStr}</span>
+                </div>
+                <div class="note-text">${preview.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')}</div>
+            </div>`;
+        }).join('');
+    } catch(e) {
+        console.error('loadNotes error:', e);
+        el.innerHTML = `<div class="alert alert-danger" style="font-size:0.875rem;">Could not load notes. Check console for details.</div>`;
+    }
+}
+
+
+async function loadTasks(ss) {
     const listEl = document.getElementById('taskList');
     if (!listEl) return;
     try {
-        const q  = query(collection(db,'tasks'), where('userId','==',currentUser.uid), orderBy('deadline','asc'));
-        const ss = await getDocs(q);
+        if (!ss) {
+            ss = await getDocs(query(collection(db,'tasks'), where('userId','==',currentUser.uid), orderBy('deadline','asc')));
+        }
         listEl.innerHTML = '';
         const countEl = document.getElementById('tasksCount');
         if (ss.empty) {
@@ -568,37 +638,42 @@ function openSessionModal(taskId, taskTitle) {
 }
 
 // ── REVIEW MODAL ───────────────────────────────────────────────────────────
-function showReviewModal(taskId, taskTitle, summary) {
+async function showReviewModal(taskId, taskTitle, summary) {
     const el = document.getElementById('reviewModalBody');
     if (!el) { openSessionModal(taskId, taskTitle); return; }
-    const aiName = userProfile?.aiName || 'AI';
+    const aiName  = userProfile?.aiName || 'AI';
     const content = summary.content || '';
-    const questions = [
-        'What was the main idea from your last session on this topic?',
-        'Which concept stood out most and why?',
-        'Is there anything from your last session that still feels unclear?',
-    ];
-    el.innerHTML = `
+
+    const headerHTML = `
         <div style="background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;">
             <div style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);margin-bottom:0.4rem;">${aiName} · Review Check</div>
             <div style="font-size:0.85rem;font-weight:700;color:var(--navy);margin-bottom:0.35rem;">${taskTitle}</div>
             <div style="font-size:0.76rem;color:var(--slate);">Last note saved ${formatRelativeDate(summary.createdAt)}:</div>
         </div>
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:0.875rem 1rem;font-size:0.875rem;color:var(--navy-2);line-height:1.6;margin-bottom:1.25rem;font-style:italic;">"${content.slice(0,280)}${content.length>280?'…':''}"</div>
-        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.75rem;">Before you continue, answer these quick questions:</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:0.875rem 1rem;font-size:0.875rem;color:var(--navy-2);line-height:1.6;margin-bottom:1.25rem;font-style:italic;">"${content.slice(0,280)}${content.length>280?'…':''}"</div>`;
+
+    el.innerHTML = headerHTML + `
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.75rem;">${aiName} is generating questions from your note…</div>
+        <div style="text-align:center;padding:1rem;color:var(--slate);font-size:0.85rem;">⏳ Loading…</div>`;
+    if (reviewModal) reviewModal.show();
+
+    const questions = await generateReviewQuestions(content, taskTitle);
+
+    el.innerHTML = headerHTML + `
+        <div style="font-size:0.82rem;font-weight:700;color:var(--navy);margin-bottom:0.75rem;">Before you continue, answer these questions ${aiName} generated from your note:</div>
         ${questions.map((q,i)=>`
             <div style="margin-bottom:1rem;">
                 <div style="font-size:0.85rem;color:var(--navy-2);margin-bottom:0.4rem;font-weight:500;">${i+1}. ${q}</div>
                 <textarea id="rqa${i}" class="form-control" rows="2" placeholder="Type a brief answer…" style="font-size:0.85rem;"></textarea>
             </div>`).join('')}
         <div style="font-size:0.75rem;color:var(--slate);margin-top:0.5rem;">${aiName} saves your answers to reinforce long-term retention.</div>`;
+
     document.getElementById('reviewContinueBtn').onclick = async () => {
         const answers = questions.map((q,i) => { const a=document.getElementById(`rqa${i}`)?.value.trim(); return a?`Q: ${q}\nA: ${a}`:null; }).filter(Boolean).join('\n\n');
         if (answers) await saveTaskSummary(taskId, taskTitle, `Review answers:\n\n${answers}`, 'text');
         if (reviewModal) reviewModal.hide();
         openSessionModal(taskId, taskTitle);
     };
-    if (reviewModal) reviewModal.show();
 }
 
 function formatRelativeDate(ts) {
@@ -615,15 +690,12 @@ window.logSession = async function () {
     if (!pagesRead || pagesRead <= 0) { window.showToast('Please enter the pages you read'); return; }
     try {
         await addDoc(collection(db,'sessions'), { userId:currentUser.uid, taskId:currentTaskId, pagesRead, duration, date:Timestamp.now() });
-        const q  = query(collection(db,'tasks'), where('userId','==',currentUser.uid));
-        const ss = await getDocs(q);
         let completed = false;
-        for (const d of ss.docs) {
-            if (d.id !== currentTaskId) continue;
-            const cur=d.data().pagesRead||0, total=d.data().totalPages||0, next=cur+pagesRead;
+        const taskSnap = await getDoc(doc(db,'tasks',currentTaskId));
+        if (taskSnap.exists()) {
+            const cur=taskSnap.data().pagesRead||0, total=taskSnap.data().totalPages||0, next=cur+pagesRead;
             await updateDoc(doc(db,'tasks',currentTaskId), { pagesRead: next });
             if (next>=total && cur<total) completed=true;
-            break;
         }
         if (sessionModal) sessionModal.hide();
         await loadAllData();
@@ -636,12 +708,8 @@ window.logSession = async function () {
             if (msgEl) msgEl.textContent = `You finished "${currentTaskTitle}"${name}. Outstanding work!`;
             setTimeout(() => { if (completionModal) completionModal.show(); }, 400);
         } else {
-            // Toast with inline "Add note" button
-            window.showToast(
-                `${pagesRead} pages logged. <button onclick="openSummaryModal('${currentTaskId}','${currentTaskTitle.replace(/'/g,"\\'")}');this.closest('.rs-toast').classList.remove('show')" style="background:var(--amber);color:#000;border:none;border-radius:6px;padding:0.15rem 0.55rem;font-size:0.75rem;font-weight:700;cursor:pointer;margin-left:0.5rem;">Add note</button>`,
-                true
-            );
-            pushInAppNotif('info', '📚', 'Session Logged', `${pagesRead} pages logged for "${currentTaskTitle}".`);
+            // Show note prompt modal instead of a dismissable toast
+            showNotePrompt(pagesRead, currentTaskId, currentTaskTitle);
         }
     } catch(e) { console.error(e); window.showToast('Error saving session. Please try again.'); }
 };
@@ -651,6 +719,89 @@ window.openSummaryAfterCompletion = function() {
     if (completionModal) completionModal.hide();
     setTimeout(() => openSummaryModal(summaryTaskId, summaryTaskTitle), 300);
 };
+
+// ── NOTE PROMPT (post-session) ─────────────────────────────────────────────
+function showNotePrompt(pagesRead, taskId, taskTitle) {
+    summaryTaskId    = taskId;
+    summaryTaskTitle = taskTitle;
+    const aiName = userProfile?.aiName || 'AI';
+    document.getElementById('notePromptPages').textContent = `${pagesRead} pages`;
+    document.getElementById('notePromptTask').textContent  = taskTitle;
+    document.getElementById('notePromptAiLabel').textContent = `🤖 ${aiName} · Why notes matter`;
+    document.getElementById('notePromptNudge').style.display  = 'none';
+    document.getElementById('notePromptNoBtn').style.display  = 'block';
+    document.getElementById('notePromptSkipBtn').style.display = 'none';
+    pushInAppNotif('info', '📚', 'Session Logged', `${pagesRead} pages logged for "${taskTitle}".`);
+    setTimeout(() => { if (notePromptModal) notePromptModal.show(); }, 350);
+}
+
+window.notePromptYes = function() {
+    if (notePromptModal) notePromptModal.hide();
+    setTimeout(() => openSummaryModal(summaryTaskId, summaryTaskTitle), 300);
+};
+
+window.notePromptNo = async function() {
+    // Show AI nudge, hide "No thanks", show "Skip anyway"
+    const nudge   = document.getElementById('notePromptNudge');
+    const noBtn   = document.getElementById('notePromptNoBtn');
+    const skipBtn = document.getElementById('notePromptSkipBtn');
+    const aiText  = document.getElementById('notePromptAiText');
+    const aiName  = userProfile?.aiName || 'AI';
+    if (nudge)   nudge.style.display   = 'block';
+    if (noBtn)   noBtn.style.display   = 'none';
+    if (skipBtn) skipBtn.style.display = 'block';
+    if (aiText)  aiText.innerHTML = '<span style="opacity:0.4;">Thinking…</span>';
+
+    try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 1000,
+                system: `You are ${aiName}, a study companion in the ReadSmartly app. You give short, warm, evidence-based reasons why saving a session note right after studying dramatically improves long-term retention. Be encouraging, specific, and keep it to 2 sentences max.`,
+                messages: [{ role: 'user', content: `The student just finished reading ${document.getElementById('notePromptPages')?.textContent || 'some pages'} of "${summaryTaskTitle}". Give them one compelling reason to save a note right now instead of skipping.` }]
+            })
+        });
+        const data = await response.json();
+        const msg  = data.content?.[0]?.text || `Studies show that writing what you just read — even just 2 sentences — can double how much you remember in a week. It only takes 60 seconds.`;
+        if (aiText) aiText.textContent = msg;
+    } catch(e) {
+        if (aiText) aiText.textContent = `Studies show that writing what you just read — even just 2 sentences — can double how much you remember in a week. It only takes 60 seconds.`;
+    }
+};
+
+window.notePromptSkip = function() {
+    if (notePromptModal) notePromptModal.hide();
+};
+
+// ── AI REVIEW QUESTIONS (generated from actual note content) ───────────────
+async function generateReviewQuestions(noteContent, taskTitle) {
+    const aiName = userProfile?.aiName || 'AI';
+    try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 1000,
+                system: `You are ${aiName}, a study companion. Generate exactly 3 short, specific review questions based on the student's actual study note. Questions should test recall and understanding of what they specifically wrote — not generic questions. Return ONLY a JSON array of 3 strings, no other text.`,
+                messages: [{ role: 'user', content: `Task: "${taskTitle}"\n\nStudent's note:\n${noteContent}\n\nGenerate 3 specific review questions based on this note.` }]
+            })
+        });
+        const data = await response.json();
+        const raw  = data.content?.[0]?.text || '[]';
+        const clean = raw.replace(/```json|```/g, '').trim();
+        return JSON.parse(clean);
+    } catch(e) {
+        // Fallback to generic questions if AI fails
+        return [
+            'What was the main idea from your last session on this topic?',
+            'Which concept stood out most and why?',
+            'Is there anything from your last session that still feels unclear?',
+        ];
+    }
+}
 
 // ── SUMMARY MODAL ──────────────────────────────────────────────────────────
 window.openSummaryModal = function(taskId, taskTitle) {
@@ -753,6 +904,7 @@ async function saveTaskSummary(taskId, taskTitle, noteContent, type) {
         console.log('Summary saved with ID:', docRef.id);
         window.showToast(type === 'voice' ? 'Voice note saved.' : 'Note saved.');
         pushInAppNotif('success', '📝', 'Note Saved', `${type === 'voice' ? 'Voice note' : 'Study note'} saved for "${taskTitle}".`);
+        loadNotes(); // refresh the notes panel live`);
     } catch(e) {
         console.error('Summary save error:', e.code, e.message);
         if (e.code === 'permission-denied') {
@@ -1031,7 +1183,16 @@ function scheduleEncouragementNotifs(totalMins) {
 
 function sendNotification(title, body, requireInteraction) {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    try { new Notification(title, { body, requireInteraction, tag:'readsmartly-timer' }); } catch(e) {}
+    try {
+        // Use service worker registration if available — works when tab is in background
+        if (navigator.serviceWorker?.controller) {
+            navigator.serviceWorker.ready.then(reg => {
+                reg.showNotification(title, { body, requireInteraction, tag: 'readsmartly-timer', icon: '/favicon.ico' });
+            });
+        } else {
+            new Notification(title, { body, requireInteraction, tag: 'readsmartly-timer' });
+        }
+    } catch(e) {}
 }
 
 // ── IN-APP NOTIFICATION CENTER ─────────────────────────────────────────────
@@ -1126,7 +1287,9 @@ window.pauseTimer = function() {
     }
 };
 window.resumeTimer = function() {
-    timerInterval=setInterval(()=>{timerSeconds--;updateTimerRunningUI();if(timerSeconds<=0){clearInterval(timerInterval);clearInterval(notifInterval);onTimerComplete();}},1000);
+    // Recalculate absolute end timestamp from remaining seconds, then use the tick engine
+    timerEndTimestamp = Date.now() + (timerSeconds * 1000);
+    timerInterval = setInterval(timerTick, 1000);
     const btn=document.getElementById('timerPauseBtn');
     if(btn){btn.innerHTML='<i class="bi bi-pause-fill me-1"></i>Pause';btn.onclick=window.pauseTimer;}
 };
@@ -1498,22 +1661,18 @@ window.openMonthCalendar = async function() {
 
 // ── CARRY-OVER DETECTION ──────────────────────────────────────────────────
 async function checkCarryOver() {
-    const el = document.getElementById('carryOverCard');
-    if (!el) return;
     try {
         const sq = query(collection(db,'sessions'), where('userId','==',currentUser.uid), orderBy('date','desc'));
         const ss = await getDocs(sq);
-        if (ss.empty) { el.style.display = 'none'; return; }
+        if (ss.empty) return;
 
-        // Last session date
         let lastDate = null;
         ss.forEach(d => { if (!lastDate) lastDate = d.data().date.toDate(); });
         const today = new Date(); today.setHours(0,0,0,0);
         const last  = new Date(lastDate); last.setHours(0,0,0,0);
         const daysMissed = Math.floor((today - last) / 86400000);
-        if (daysMissed < 2) { el.style.display = 'none'; return; }
+        if (daysMissed < 2) return;
 
-        // Work out how many pages behind
         const tq = query(collection(db,'tasks'), where('userId','==',currentUser.uid));
         const ts = await getDocs(tq);
         const speed = userProfile?.readingSpeed || 30;
@@ -1527,27 +1686,22 @@ async function checkCarryOver() {
             totalBehind  += ppd * daysMissed;
             catchUpToday += ppd + Math.ceil((ppd * daysMissed) / Math.max(days, 1));
         });
-        if (!catchUpToday) { el.style.display = 'none'; return; }
+        if (!catchUpToday) return;
 
         const aiName = userProfile?.aiName || 'AI';
-        const name   = userProfile?.userName ? `, ${userProfile.userName}` : '';
         const mins   = Math.round((catchUpToday / speed) * 60);
-        el.innerHTML = `
-          <div class="ai-card amber" style="margin-bottom:1.5rem;">
-            <span class="ai-tag amber">⚠️ ${aiName} · Carry-Over Alert</span>
-            <p style="margin-bottom:0.5rem;">You haven't logged a session in <strong>${daysMissed} days</strong>${name}. You're approximately <strong>${totalBehind} pages behind</strong> your plan.</p>
-            <p style="margin-bottom:0.75rem;">To catch up, ${aiName} recommends reading <strong>${catchUpToday} pages today</strong> (~${mins} minutes).</p>
-            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-              <button class="btn-rs" style="font-size:0.8rem;padding:0.4rem 1rem;" onclick="document.getElementById('carryOverCard').style.display='none';">
-                <i class="bi bi-check me-1"></i>Got it, I'll read today
-              </button>
-              <button class="btn-rs-ghost" style="font-size:0.8rem;padding:0.4rem 0.875rem;" onclick="openStandaloneTimer()">
-                <i class="bi bi-stopwatch me-1"></i>Start timer now
-              </button>
-            </div>
-          </div>`;
-        el.style.display = 'block';
-        pushInAppNotif('warn', '⚠️', 'Carry-Over Alert', `${daysMissed} days missed. ${aiName} suggests ${catchUpToday} pages today to get back on track.`);
+
+        // Push to in-app notification bell — tapping it shows the detail
+        pushInAppNotif('warn', '⚠️',
+            `${daysMissed} days missed`,
+            `${aiName}: You're ~${totalBehind} pages behind. Aim for ${catchUpToday} pages today (~${mins} min) to catch up.`
+        );
+        // Also send a browser push notification if permitted
+        sendNotification(
+            `ReadSmartly: ${daysMissed} days missed`,
+            `${aiName}: You're ~${totalBehind} pages behind. Open the app to catch up.`,
+            true
+        );
         trackEvent('carryover_detected', { daysMissed, totalBehind, catchUpToday });
     } catch(e) { console.error('Carry-over check error:', e); }
 }
@@ -1743,17 +1897,19 @@ window.exportReportPDF = async function() {
 async function checkSmartReminder() {
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     try {
-        // Check if user has already studied today
-        const today = new Date(); today.setHours(0,0,0,0);
-        const sq = query(collection(db,'sessions'), where('userId','==',currentUser.uid), where('date','>=',Timestamp.fromDate(today)));
-        const ss = await getDocs(sq);
-        if (!ss.empty) return; // Already studied today — no reminder needed
-
-        // Get user's peak hour from historical sessions
+        // Single query for all sessions — use it for both "studied today" and peak-hour calc
         const hq = query(collection(db,'sessions'), where('userId','==',currentUser.uid));
         const hs = await getDocs(hq);
+
+        const today = new Date(); today.setHours(0,0,0,0);
+        let studiedToday = false;
         const counts = new Array(24).fill(0);
-        hs.forEach(d => counts[d.data().date.toDate().getHours()]++);
+        hs.forEach(d => {
+            const date = d.data().date.toDate();
+            if (date >= today) studiedToday = true;
+            counts[date.getHours()]++;
+        });
+        if (studiedToday) return; // Already studied today — no reminder needed
         const peakHour = counts.map((c,h)=>({h,c})).sort((a,b)=>b.c-a.c)[0]?.h ?? 20;
 
         const now    = new Date();

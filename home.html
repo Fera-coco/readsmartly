@@ -424,7 +424,7 @@
         <button class="nav-chip" onclick="toggleNotifPanel()" id="notifBellBtn" title="Notifications" style="position:relative;display:flex;align-items:center;gap:0.35rem;">
           <i class="bi bi-bell"></i>
           <span class="d-none d-sm-inline">Alerts</span>
-          <span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#EF4444;border-radius:50%;font-size:0.55rem;font-weight:700;color:#fff;display:flex;align-items:center;justify-content:center;line-height:1;" class="notif-badge">0</span>
+          <span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#EF4444;border-radius:50%;font-size:0.55rem;font-weight:700;color:#fff;align-items:center;justify-content:center;line-height:1;" class="notif-badge">0</span>
         </button>
         <button class="nav-chip" onclick="openStandaloneTimer()" title="Start a reading timer" style="display:flex;align-items:center;gap:0.35rem;"><i class="bi bi-stopwatch"></i> <span class="d-none d-sm-inline">Timer</span></button>
         <button class="nav-chip" onclick="openPomodoroSetup()" title="Pomodoro mode" style="display:flex;align-items:center;gap:0.35rem;"><i class="bi bi-circle-half"></i> <span class="d-none d-md-inline">Pomodoro</span></button>
@@ -686,6 +686,43 @@
     </div>
   </div>
 
+
+  <!-- POST-SESSION NOTE PROMPT MODAL -->
+  <div class="modal fade" id="notePromptModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-body" style="padding:1.75rem 1.5rem;">
+          <div style="text-align:center;margin-bottom:1.25rem;">
+            <div style="font-size:2.5rem;margin-bottom:0.5rem;">📝</div>
+            <h5 style="font-family:var(--font-head);font-weight:800;color:var(--navy);margin-bottom:0.4rem;">Save a session note?</h5>
+            <p style="font-size:0.875rem;color:var(--slate);margin:0;" id="notePromptSubtitle">
+              You just logged <strong id="notePromptPages"></strong> pages of <strong id="notePromptTask"></strong>. Writing what you covered while it's fresh boosts long-term retention.
+            </p>
+          </div>
+
+          <!-- AI nudge panel — shown when user taps "No thanks" -->
+          <div id="notePromptNudge" style="display:none;background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:12px;padding:1rem 1.1rem;margin-bottom:1.1rem;">
+            <div style="font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);margin-bottom:0.4rem;" id="notePromptAiLabel">🤖 AI · Why notes matter</div>
+            <p id="notePromptAiText" style="font-size:0.83rem;color:var(--navy-2);margin:0;line-height:1.6;">
+              <span style="opacity:0.4;">Loading…</span>
+            </p>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:0.625rem;">
+            <button class="btn-rs" id="notePromptYesBtn" onclick="notePromptYes()" style="padding:0.7rem;font-size:0.95rem;font-weight:700;">
+              <i class="bi bi-pencil-fill me-2"></i>Yes, save a note
+            </button>
+            <button class="btn-rs-ghost" id="notePromptNoBtn" onclick="notePromptNo()" style="font-size:0.85rem;color:var(--slate);">
+              No thanks
+            </button>
+            <button id="notePromptSkipBtn" onclick="notePromptSkip()" style="display:none;background:none;border:none;font-size:0.78rem;color:var(--slate);cursor:pointer;padding:0.25rem;text-decoration:underline;text-underline-offset:3px;">
+              Skip anyway
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- SUMMARY MODAL -->
   <div class="modal fade" id="summaryModal" tabindex="-1">

@@ -844,4 +844,23 @@
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
     }, { threshold: 0.15 });
     steps.forEach(s => io.observe(s));
+
+    // ── THEME TOGGLE ──────────────────────────────────────────────
+    const html = document.documentElement;
+    const btn  = document.getElementById('themeToggleBtn');
+
+    function applyTheme(theme) {
+      html.setAttribute('data-landing-theme', theme);
+      if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+      localStorage.setItem('rs_landing_theme', theme);
+    }
+
+    // Restore saved preference on load (default is dark per the HTML attribute)
+    const saved = localStorage.getItem('rs_landing_theme');
+    if (saved) applyTheme(saved);
+
+    function toggleTheme() {
+      const current = html.getAttribute('data-landing-theme') || 'dark';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    }
   </script>
