@@ -18,3 +18,5 @@ Thumbs.db
 # Editors
 .vscode/
 .idea/
+
+# firebase-config.js
