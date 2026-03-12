@@ -25,7 +25,9 @@ const isLocal = window.location.hostname === 'localhost' || window.location.host
 
 const res = await fetch('/api/config').then(r => r.json());
 
-res.apiKey = isLocal ?? "LOCAL_KEY_PLACEHOLDER";
+res.apiKey = isLocal 
+? "LOCAL_KEY_PLACEHOLDER"
+: res.apiKey;
 
 console.log(res)
 
