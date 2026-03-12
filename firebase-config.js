@@ -29,8 +29,6 @@ res.apiKey = isLocal
 ? "LOCAL_KEY_PLACEHOLDER"
 : res.apiKey;
 
-console.log(res)
-
 const firebaseConfig = res;
 export const app  = initializeApp(firebaseConfig);
 export const db   = getFirestore(app);
