@@ -3,7 +3,7 @@
 // import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 //   const firebaseConfig = {
-//     apiKey: "AIzaSyBun5RWa8BSRNea6ses6GhyCCsL1XNLsu4",
+//     apiKey: "somepublickey",
 //     // apiKey: "AIzaSyBEqnLqEkbgHHc4pgJQQsMXUCWOxRhSKiQ",
 //     authDomain: "readstreak-52274.firebaseapp.com",
 //     projectId: "readstreak-52274",
